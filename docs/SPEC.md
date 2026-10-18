@@ -135,3 +135,8 @@
 - 不把“无药可治”作为首页长期文案；采用“记录变化，准备下一次复诊”，研究状态附核对日期。
 
 资源主体约束：FSHD-China、论文中的 FSHD Community Network、联盟旧目录 FSHD Youth 不因名称相似自动合并，别名/隶属只记待核实关系与来源。
+
+
+## 9. 原生 Agent 面板设计状态
+
+入口与布局合同见 [AGENT-PANE-DESIGN.md](AGENT-PANE-DESIGN.md)。采用 `customFrame: true`、业务优先、右侧按需原生会话；35%默认宽、25%–45%拖动，窄于620px的业务容器时折叠。此为设计规格，不代表DSh API已接入。HTML状态稿修改历史、宽度和ARIA记录在 `docs/PROTOTYPE-REVIEW.md`；AP01–AP08逐项映射见 `docs/UI-PARITY.md`。
