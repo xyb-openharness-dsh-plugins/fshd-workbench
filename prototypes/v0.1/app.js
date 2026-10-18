@@ -153,39 +153,52 @@ const extra=kind==='功能与康复'?`<label>身体区域<select name="region"><
 modal('新增模拟记录',`<p class="notice">仅用于走查，不输入真实信息。保存后可在本页回顾；记录归属当前档案「${esc(cur().name)}」，刷新即重置。</p><form id="entryForm"><input name="kind" type="hidden" value="${esc(kind)}"><div class="fields"><label>记录日期<input name="date" type="date" required max="${new Date().toLocaleDateString('en-CA')}"></label><label>记录类型<select name="type"><option>本人观察</option><option>专业建议原文</option><option>辅助器具</option><option>跌倒事件</option><option>康复 / 支持性干预</option></select></label>${extra}</div><label>${kind==='并发症筛查'?'建议原文与适用条件':'具体任务、体验或问题'}<textarea name="note" required maxlength="1200" placeholder="例如：示例任务；示例来源。不要填写真实病历。"></textarea></label><label>来源（可留空，保持未记录）<input name="source" maxlength="120"></label><button class="primary">保存模拟记录</button></form>`);
 $('#entryForm').onsubmit=e=>{e.preventDefault();const item=Object.fromEntries(new FormData(e.target));records().push({...item,id:crypto.randomUUID(),private:kind==='心理与生活'});$('#dialog').close();render();toast('模拟记录已保存（归属 '+cur().name+'）；刷新后重置')};
 }
-function recordList(kind){const rows=records().filter(r=>r.kind===kind);return rows.length?rows.map(r=>`<div class="record"><strong>${esc(r.date)} · ${esc(r.type)}</strong><p>${esc(r.region||'')}${r.side?' · '+esc(r.side):''} ${esc(r.note)}</p><small>来源：${esc(r.source||'未记录')}${kind==='并发症筛查'?' · 下次：'+esc(r.due||'待与医生确认'):''}${r.private?' · 私密 / 不进入摘要':''}</small></div>`).join(''):'<div class="empty">还没有记录。可以新增一条模拟记录，体验保存与回顾。</div>'}
+function recordList(kind){
+const rows=records().filter(r=>r.kind===kind).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+if(!rows.length)return '<div class="empty">还没有记录。可以新增一条模拟记录，体验保存与回顾。</div>';
+return `<ol class="record-timeline" aria-label="按日期排列的${esc(kind)}记录">${rows.map(r=>{
+  const type=(r.type||'本人观察').replace(/^画像预置\s*[·・]\s*/,'');
+  const glyph=type.includes('辅助器具')?'◇':type.includes('专业建议')?'▤':type.includes('康复')?'↗':'•';
+  return `<li class="rt-item"><div class="rt-date"><time datetime="${esc(r.date)}">${esc(r.date)}</time><span class="rt-node" aria-hidden="true">${glyph}</span></div>
+    <article class="rt-content"><div class="rt-head"><span class="rt-type"><span class="rt-glyph" aria-hidden="true">${glyph}</span>${esc(type)}</span><time class="rt-inline-date" datetime="${esc(r.date)}">${esc(r.date)}</time>${r.region?`<span class="rt-meta">${esc(r.region)}${r.side?' · '+esc(r.side):''}</span>`:''}</div>
+      <p class="rt-note">${esc(r.note)}</p>
+      <div class="rt-foot"><span>来源：${esc(r.source||'未记录')}</span>${kind==='并发症筛查'?`<span>下次：${esc(r.due||'待与医生确认')}</span>`:''}${r.private?'<span class="tag private">私密 · 不进摘要</span>':''}</div>
+    </article></li>`;
+}).join('')}</ol>`;
+}
 
 /* ============================================================
    我的确诊（taste：瑞士平面 + 一角留白；大号数字锚点取代文字堆叠）
    ============================================================ */
 function renderDiagnosis(p){
 const steps=p.misdx.map((m,i)=>{const n=String(i+1).padStart(2,'0');
-  const k=m.kind==='preliminary'?'先被诊断':m.kind==='revised'?'诊断修订':'分子确诊';
-  return `<div class="dx-step ${m.kind==='confirmed'?'confirm':''}">
-    <i>${n}</i><span class="dx-step-k">${k}</span>
-    <b>${esc(m.label)}</b>
-    <small>${esc(m.when)} · ${esc(m.hospital)}</small></div>`;}).join('');
-return `<section class="card dx">
-  <div class="dx-head">
-    <div class="dx-anchor"><span class="dx-num">${p.gene.repeats}</span><span class="dx-num-k">D4Z4 重复单元数目（抄录）</span></div>
-    <div class="dx-facts">
-      <div><span class="k">单倍型</span><b>${esc(p.gene.haplo)}</b></div>
-      <div><span class="k">分型</span><b>${esc(p.gene.type)}</b></div>
-      <div><span class="k">检测方法</span><b>${esc(p.gene.method)}</b></div>
-      <div><span class="k">机构 · 日期</span><b>${esc(p.gene.hospital)} · ${esc(p.gene.date)}</b></div>
+  const k=m.kind==='preliminary'?'初次判断':m.kind==='revised'?'诊断修订':'分子确诊';
+  const glyph=m.kind==='preliminary'?n:m.kind==='revised'?'↻':'✓';
+  return `<li class="dx-step ${m.kind==='confirmed'?'confirm':''}"><span class="dx-step-node" aria-hidden="true">${glyph}</span>
+    <div class="dx-step-copy"><span class="dx-step-k">${k}</span><b>${esc(m.label)}</b>
+    <small><time>${esc(m.when)}</time><span>${esc(m.hospital)}</span></small></div></li>`;}).join('');
+return `<section class="card dx dx-record">
+  <header class="dx-card-head"><div class="dx-card-title"><span class="dx-icon" aria-hidden="true">⌬</span><div><span class="dx-kicker">基因检测档案</span><h2>分子确诊信息</h2></div></div><span class="tag blue">${esc(p.gene.type)}</span></header>
+  <div class="dx-record-grid">
+    <div class="dx-anchor"><span class="dx-num">${p.gene.repeats}</span><span class="dx-num-k">D4Z4 重复单元数目</span><span class="dx-source-mark">报告抄录</span></div>
+    <div class="dx-facts" aria-label="基因检测信息">
+      <div class="dx-fact"><span class="dx-fact-icon" aria-hidden="true">◈</span><div><span class="k">单倍型</span><b>${esc(p.gene.haplo)}</b></div></div>
+      <div class="dx-fact"><span class="dx-fact-icon" aria-hidden="true">⌖</span><div><span class="k">检测方法</span><b>${esc(p.gene.method)}</b></div></div>
+      <div class="dx-fact"><span class="dx-fact-icon" aria-hidden="true">▤</span><div><span class="k">检测机构</span><b>${esc(p.gene.hospital)}</b></div></div>
+      <div class="dx-fact"><span class="dx-fact-icon" aria-hidden="true">▦</span><div><span class="k">报告日期</span><b>${esc(p.gene.date)}</b></div></div>
     </div>
   </div>
-  <details class="dx-quote"><summary>报告原文位（不改写、不判读）</summary><div class="quote">「${esc(p.gene.quote)}」</div></details>
-  <p class="note">严重程度与外显预测不由本工作台给出。AI 工具（Khub 社区开源链路、OpenRare）的解读属于待医生复核的线索，不写入本档案。</p>
+  <details class="dx-quote"><summary><span class="dx-inline-icon" aria-hidden="true">≡</span><span>查看报告原文</span><small>原样抄录 · 不改写、不判读</small></summary><div class="quote">「${esc(p.gene.quote)}」</div></details>
+  <div class="dx-boundary"><span class="dx-info" aria-hidden="true">i</span><p>本页不预测严重程度或外显。Khub、OpenRare 等工具解读仅作待医生复核的线索，不写入档案。</p></div>
 </section>
-<section class="card dx"><h2>确诊之路</h2>
-  <div class="dx-steps">${steps}</div>
-  <p class="note">只新增、不删除历史。这段经历引发情绪时，可到「心理与生活」记录（私密）。</p>
+<section class="card dx dx-history"><header class="dx-section-head"><div><span class="dx-icon" aria-hidden="true">↻</span><div><h2>确诊历程</h2><p>按记录时间回看诊断如何逐步明确</p></div></div><span class="tag">${p.misdx.length} 个节点</span></header>
+  <ol class="dx-steps">${steps}</ol>
+  <div class="dx-history-link"><span>这段经历带来情绪压力？</span><button class="task-link" data-page="心理与生活">整理感受（默认私密） →</button></div>
 </section>
-<section class="card private dx"><h2>家系记录 <span class="tag private">私密 · 不进导出</span></h2>
-  <div class="dx-family">${p.family.map(f=>`<div class="dx-fam"><b>${esc(f.relation)}</b><span>${esc(f.status)}</span><small>${esc(f.note)}</small></div>`).join('')}</div>
-  <details><summary>可讨论问题（遗传咨询准备）</summary><ul><li>我的 FSHD 是遗传来的还是新生突变？</li><li>家系成员检测的意义与流程？</li><li>50% 遗传概率与 20%–30% 新生突变如何理解？</li></ul></details>
-  <p class="note">默认私密：不进导出、看板摘要与 AI 草稿。术语卡与沟通材料在「复诊准备」。</p>
+<section class="card private dx dx-family-card"><header class="dx-section-head"><div><span class="dx-icon dx-icon-private" aria-hidden="true">⌂</span><div><h2>家系记录</h2><p>仅你决定是否用于遗传咨询</p></div></div><span class="tag private"><span aria-hidden="true">▣</span> 私密 · 不进导出</span></header>
+  <div class="dx-family">${p.family.map(f=>`<article class="dx-fam"><span class="dx-fam-mark" aria-hidden="true">${esc(f.relation.slice(0,1))}</span><div class="dx-fam-copy"><b>${esc(f.relation)}</b><span>${esc(f.status)}</span><small>${esc(f.note)}</small></div></article>`).join('')}</div>
+  <details class="dx-counsel"><summary><span class="dx-inline-icon" aria-hidden="true">＋</span><span>遗传咨询时可以讨论</span><small>3 个问题</small></summary><ul><li>我的 FSHD 是遗传来的还是新生突变？</li><li>家系成员检测的意义与流程？</li><li>50% 遗传概率与 20%–30% 新生突变如何理解？</li></ul></details>
+  <div class="dx-privacy-note"><span aria-hidden="true">▣</span><p>家系信息默认不进入导出、看板摘要或 AI 草稿；沟通材料可在「复诊准备」整理。</p></div>
 </section>`;
 }
 
@@ -403,7 +416,7 @@ function drawChart({animate=false}={}){
     return `<g>${path}${points}${label}</g>`;}).join('');
 
   if(animate)st.animationRunId=(st.animationRunId||0)+1;
-  wrap.innerHTML=`<svg class="chart${animate?' chart-animate':''}" id="onechartSvg" data-animation-run="${st.animationRunId||0}" viewBox="0 0 ${CW} ${chartHeight}" role="img"
+  wrap.innerHTML=`<svg class="chart${animate?' chart-animate':''}" id="onechartSvg" data-animation-run="${st.animationRunId||0}" viewBox="0 0 ${CW} ${chartHeight}" role="group"
     aria-label="所选指标时序图，共 ${series.length} 条序列；每条线按自身全部记录范围归一化，不代表数值可比">
     ${grid}${ticks}${markLines}${lines}${strip}
     <text class="tick" x="${CX0}" y="${plotBottom+36}">各序列按自身全部记录的最小值–最大值归一化，不代表数值可比</text>
@@ -447,10 +460,14 @@ function drawChart({animate=false}={}){
   /* 悬停预览 + 点选固定 */
   const svgEl=$('#onechartSvg'),tip=$('#chartTip');
   const highlightEvent=(i,on)=>{document.querySelectorAll(`.event-node[data-i="${i}"],.ev-tag[data-i="${i}"]`).forEach(node=>node.classList.toggle('hover-linked',on));};
-  svgEl.onpointerover=ev=>{const node=ev.target.closest('.event-node');if(node){highlightEvent(node.dataset.i,true);tip.classList.add('on');tip.style.left=(Number(node.querySelector('.event-hit').getAttribute('cx')/CW*100))+'%';tip.style.top=(Number(node.querySelector('.event-hit').getAttribute('cy')/chartHeight*100))+'%';tip.textContent=node.querySelector('title')?.textContent||node.getAttribute('aria-label');}};
+  const showEventTip=node=>{const point=node.querySelector('.event-hit'),chartRect=svgEl.getBoundingClientRect(),wrapRect=wrap.getBoundingClientRect();
+    tip.classList.add('on');tip.style.left=`${chartRect.left-wrapRect.left+wrap.scrollLeft+Number(point.getAttribute('cx'))/CW*chartRect.width}px`;
+    tip.style.top=`${chartRect.top-wrapRect.top+Number(point.getAttribute('cy'))/chartHeight*chartRect.height}px`;
+    tip.textContent=node.querySelector('title')?.textContent||node.getAttribute('aria-label');};
+  svgEl.onpointerover=ev=>{const node=ev.target.closest('.event-node');if(node){highlightEvent(node.dataset.i,true);showEventTip(node);}};
   svgEl.onpointerout=ev=>{const node=ev.target.closest('.event-node');if(node&&!node.contains(ev.relatedTarget)){highlightEvent(node.dataset.i,false);tip.classList.remove('on');}};
-  svgEl.onfocusin=ev=>{const node=ev.target.closest('.event-node');if(node)highlightEvent(node.dataset.i,true);};
-  svgEl.onfocusout=ev=>{const node=ev.target.closest('.event-node');if(node)highlightEvent(node.dataset.i,false);};
+  svgEl.onfocusin=ev=>{const node=ev.target.closest('.event-node');if(node){highlightEvent(node.dataset.i,true);showEventTip(node);}};
+  svgEl.onfocusout=ev=>{const node=ev.target.closest('.event-node');if(node){highlightEvent(node.dataset.i,false);tip.classList.remove('on');}};
   svgEl.onkeydown=ev=>{const node=ev.target.closest('.event-node');if(!node||!['Enter',' '].includes(ev.key))return;ev.preventDefault();const i=node.dataset.i;node.dispatchEvent(new MouseEvent('click',{bubbles:true}));requestAnimationFrame(()=>svgEl.querySelector(`.event-node[data-i="${i}"]`)?.focus());};
   tags.onpointerover=ev=>{const tag=ev.target.closest('.ev-tag');if(tag)highlightEvent(tag.dataset.i,true);};
   tags.onpointerout=ev=>{const tag=ev.target.closest('.ev-tag');if(tag&&!tag.contains(ev.relatedTarget))highlightEvent(tag.dataset.i,false);};
@@ -487,13 +504,13 @@ if(current==='看板')html+=`<section class="hero"><h1>记录变化，<br>准备
 else if(current==='我的确诊')html+=renderDiagnosis(p);
 else if(current==='检查与指标')html+=renderLabs(p);
 else if(current==='病情一图秀')html+=renderOneChart(p);
-else if(['功能与康复','并发症筛查','疼痛与疲劳','心理与生活'].includes(current)){const descriptions={'功能与康复':'关注洗头、穿衣、起身、上下台阶等具体任务。下面含「画像预置」的模拟记录与你新增的记录；不对称、辅具体验、跌倒或专业建议都可记录，不自行生成训练方案。','并发症筛查':'记录适用于自己的专业建议。眼、听力、呼吸与肌骨评估的条件不同，不预设人人每年四项检查。预置条目展示典型节奏，具体以医生建议为准。','疼痛与疲劳':'记录发生情境和对生活的影响，帮助复诊时说清楚，不自动判断好转或恶化。','心理与生活':'这里的感受记录默认私密，不进入看板、复诊导出或 AI 草稿。学业就业、独立生活与沟通材料保持原有子页归属。'};html+=`<p>${descriptions[current]}</p><div class="row"><span class="pill">画像预置 ${records().filter(r=>r.type&&r.type.startsWith('画像预置')).length} 条 · 你新增 ${records().filter(r=>!(r.type||'').startsWith('画像预置')).length} 条</span><button class="primary" id="add">新增模拟记录</button></div><div class="card section ${current==='心理与生活'?'private':''}">${recordList(current)}</div>`;if(current==='心理与生活')html+=`<div class="card section"><h2>支持与生活事项</h2><p>可先记录：我最需要什么支持、愿意告诉谁、工作/学业希望怎样调整、出行需要核实哪些无障碍条件。完整子页尚待原型细化。</p>${jump('医保与资源','查看支持资源')}</div>`;}
+else if(['功能与康复','并发症筛查','疼痛与疲劳','心理与生活'].includes(current)){const descriptions={'功能与康复':'按日期回看任务体验、辅助器具与康复支持。保留原始描述和来源，不生成训练建议。','并发症筛查':'记录适用于自己的专业建议。眼、听力、呼吸与肌骨评估的条件不同，不预设人人每年四项检查。预置条目展示典型节奏，具体以医生建议为准。','疼痛与疲劳':'记录发生情境和对生活的影响，帮助复诊时说清楚，不自动判断好转或恶化。','心理与生活':'这里的感受记录默认私密，不进入看板、复诊导出或 AI 草稿。学业就业、独立生活与沟通材料保持原有子页归属。'};html+=`<p>${descriptions[current]}</p><div class="row"><span class="pill">画像预置 ${records().filter(r=>r.type&&r.type.startsWith('画像预置')).length} 条 · 你新增 ${records().filter(r=>!(r.type||'').startsWith('画像预置')).length} 条</span><button class="primary" id="add">新增模拟记录</button></div><div class="card section ${current==='心理与生活'?'private':''}">${recordList(current)}</div>`;if(current==='心理与生活')html+=`<div class="card section"><h2>支持与生活事项</h2><p>可先记录：我最需要什么支持、愿意告诉谁、工作/学业希望怎样调整、出行需要核实哪些无障碍条件。完整子页尚待原型细化。</p>${jump('医保与资源','查看支持资源')}</div>`;}
 else if(current==='医保与资源'||current==='临床研究'){
 const isTrial=current==='临床研究',items=isTrial?trials:resources,filters=isTrial?['全部','已收藏']:['全部','患者组织','公益组织','渠道 / 工具','医疗机构','已收藏'];
 html+=`<p>${isTrial?'把注册阶段、公开结果与实际可及性分开看。这里是有日期的研究快照，不是可购买药品目录。':'从要解决的事情出发，核对服务范围与入口。名单有代表性，不是医院排名；预约、资格及费用仍需咨询。'}</p><div class="subnav">${filters.map(f=>`<button data-filter="${f}" aria-pressed="${tab===f}">${f}</button>`).join('')}</div><div class="grid">${items.filter(i=>tab==='全部'||tab==='已收藏'&&saved().has(i.id)||i.type===tab).map(i=>card(esc(i.name),`<span class="pill">${esc(i.stage||i.type+' · '+i.region)}</span><p>${esc(i.mechanism||i.service)}</p>${isTrial?`<p>${esc(i.result)}</p>`:''}<p><strong>可及性：</strong>${esc(i.limit)}</p><div class="source">${esc(i.source||i.evidence)} · 核对 2026-10-18${i.date?' · 事件 '+esc(i.date):''}</div><div class="row section"><button data-detail="${i.id}" class="small">详情与咨询准备</button><button data-save="${i.id}" class="small" aria-pressed="${saved().has(i.id)}">${saved().has(i.id)?'取消收藏':'收藏'}</button></div>`)).join('')||'<div class="empty">还没有收藏。返回“全部”，选择需要核实的线索。</div>'}</div>`;
 }
 else if(current==='复诊准备')html+=`<p>汇总「${esc(p.name)}」本轮非私密模拟记录与收藏。公共研究线索与本人观察分区输出，支持下载真实 Markdown 文件。</p><div class="card"><h2>本次摘要</h2>${records().filter(r=>!r.private).map(r=>`<div class="record"><strong>${esc(r.kind)} · ${esc(r.date)}</strong><p>${esc(r.note)}</p><small>用户模拟记录，非专业结论；来源：${esc(r.source||'未记录')}</small></div>`).join('')||'<div class="empty">还没有可汇总的记录。先记录一项生活任务变化。</div>'}<h3>指标摘要（抄录位）</h3><div class="table-wrap"><table><tr><th>指标</th><th>末值</th><th>日期</th><th>全期范围</th><th>来源</th></tr>${METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1],v=a.map(x=>x[1]);return `<tr><td>${esc(m.name)}</td><td class="num">${fmt(m,l[1])} ${esc(m.unit)}</td><td>${esc(l[0])}</td><td class="num">${fmt(m,Math.min(...v))}–${fmt(m,Math.max(...v))}</td><td>${esc(m.src)}</td></tr>`}).join('')}</table></div><p>已收藏 ${saved().size} 条公共线索；不代表已核实可获得服务。</p><button id="export" class="primary">下载复诊准备.md</button></div>`;
-else if(current==='设置')html+=`<div class="stack">${card('本机资料目录','<p>未连接。此 HTML 原型不读取或持久化患者资料。</p><button disabled>选择目录（待 Desktop 接入）</button>')}${card('报告解析','<p>未配置、未发送。真实解析须另行显示上传路径并按文件授权。</p><button disabled>解析报告（未接通）</button>')}${card('模拟档案','<p>'+PROFILES.map(x=>esc(x.name)+'（'+esc(x.meta)+'）').join('<br>')+'</p><p class="note">三组画像用于走查不同病程阶段；右上角随时切换。记录与收藏按档案隔离。</p>')}${card('关于','<p>小飞侠 0.1.0 · 研究快照 2026-10-18。只是交互探索稿，完整导航与任务仍待细化，未通过用户原型确认。</p>')}</div>`;
+else if(current==='设置')html+=`<div class="stack">${card('本机资料目录','<p>未连接。此 HTML 原型不读取或持久化患者资料。</p><button disabled>选择目录（待 Desktop 接入）</button>')}${card('报告解析','<p>未配置、未发送。真实解析须另行显示上传路径并按文件授权。</p><button disabled>解析报告（未接通）</button>')}${card('模拟档案','<p>'+PROFILES.map(x=>esc(x.name)+'（'+esc(x.meta)+'）').join('<br>')+'</p><p class="note">三组画像用于走查不同病程阶段；右上角随时切换。记录与收藏按档案隔离。</p>')}${card('文字大小','<div class="tz-opts">'+TZ.map((t,i)=>`<label class="tz-opt"><input type="radio" name="tz" data-tz="${i}" ${i===tzIdx?'checked':''}><span>${t.label}</span><small>${t.note}</small></label>`).join('')+'</div><p class="note">正文、按钮与卡片文字按档位整体缩放；图表内的坐标与标签文字刻意跟随页面缩放而非档位，保持末点标签的避让几何与不越界。右上角「字」按钮与这里同一状态。</p>')}${card('关于','<p>小飞侠 0.1.0 · 研究快照 2026-10-18。只是交互探索稿，完整导航与任务仍待细化，未通过用户原型确认。</p>')}</div>`;
 $('#main').innerHTML=html;
 if(current==='病情一图秀')drawChart({animate:true});
 }
@@ -549,6 +566,7 @@ if(b&&b.dataset.detail){const i=[...resources,...trials].find(i=>i.id===b.datase
 if(b&&b.id==='export')download();});
 document.addEventListener('change',e=>{
 const t=e.target;
+if(t.dataset&&t.dataset.tz!==undefined){setTZ(Number(t.dataset.tz),true);return}
 if(t.dataset&&t.dataset.pick){const st=chart(),code=t.dataset.pick;
   if(t.checked){
     if(st.sel.length>=4){t.checked=false;toast('最多同时显示 4 条曲线；请先取消一条再选');return}
@@ -562,13 +580,24 @@ if(t.dataset&&t.dataset.action==='zoom'){const st=chart();st.zoom=Number(t.value
 if(t.id==='aiState'){$('#aiStatus').textContent=t.value;$('#aiNote').textContent=t.value.includes('冲突')?'已有草稿保留。覆盖与发送均被阻止；可取消并返回工作台。':t.value.includes('失败')?'连接失败（模拟）。未发送任何内容，工作台记录保留。':t.value+'；无真实连接或发送。'}});
 
 function download(){const p=cur();const body=['# 小飞侠 0.1.0 · 复诊准备（模拟 · '+p.name+'）','生成：'+new Date().toISOString(),'仅当前探索稿数据；私密记录未包含。','\n## 本人模拟记录',...records().filter(r=>!r.private).map(r=>`- ${r.date} / ${r.kind}：${r.note}\n  来源：${r.source||'未记录'}；非专业结论`),'\n## 指标摘要（抄录位）',...METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1];return `- ${m.name}：${fmt(m,l[1])} ${m.unit}（${l[0]}）· ${m.src}`}),'\n## 基因确诊档案（抄录位）',`- ${p.gene.type} · D4Z4 ${p.gene.repeats} · ${p.gene.haplo} · ${p.gene.method} · ${p.gene.hospital} ${p.gene.date}`,`- 原文：${p.gene.quote}`,'\n## 公共参考线索（不等于个人病历事实）',...[...resources,...trials].filter(i=>saved().has(i.id)).map(i=>`- ${i.name}：${i.limit}\n  ${i.url}\n  核对2026-10-18；${i.source||i.evidence}`),'\n## 下次可问','- 哪些功能变化值得进一步评估？','- 哪些检查适用于我，计划日期和来源是什么？'].join('\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob([body],{type:'text/markdown;charset=utf-8'}));a.href=url;a.download='小飞侠-复诊准备-模拟.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已生成 Markdown 下载（'+p.name+'）；请查看浏览器下载结果')}
-$('#font').onclick=()=>{document.body.classList.toggle('large');$('#font').textContent=document.body.classList.contains('large')?'标准字':'大字'};
+/* ---------- 文字大小三档：右上角按钮与设置页共用同一状态 ---------- */
+const TZ=[{k:'',label:'标准',note:'正文 15px'},{k:'large',label:'大',note:'正文 17px'},{k:'xlarge',label:'超大',note:'正文 19.5px'}];
+let tzIdx=0;
+function setTZ(i,announce){
+  tzIdx=(i+TZ.length)%TZ.length;const t=TZ[tzIdx];
+  document.body.classList.remove('large','xlarge');if(t.k)document.body.classList.add(t.k);
+  const btn=$('#font');btn.textContent='字 '+t.label;
+  btn.setAttribute('aria-label','文字大小：'+t.label+'（'+t.note+'）。点击切换到下一档');
+  document.querySelectorAll('[data-tz]').forEach(r=>{r.checked=Number(r.dataset.tz)===tzIdx});
+  if(announce)toast('文字大小：'+t.label+'（'+t.note+'）· 图内坐标文字不随档位变化');
+}
+$('#font').onclick=()=>setTZ(tzIdx+1,true);
 $('#close').onclick=$('#done').onclick=()=>$('#dialog').close();
-$('#about').onclick=()=>modal('小飞侠 0.1.0 · 关于与范围','<p>这是第一批交互探索稿，非完整工作台、非真实患者服务。</p><p>可走查：三组模拟档案切换、确诊档案与误诊时间线、指标卡 3D 翻转看趋势、一图秀多指标（独立归一化 / 时间窗 / 缩放 / 事件泳道 / 重播）、功能/筛查/症状/私密记录、资源与研究收藏（含 Khub 社区与 OpenRare 工具线索）、复诊 Markdown 导出及模拟面板状态稿。</p><p>尚待：报告导入、生产存储、原生 Agent 实机适配、完整子页与异常状态、用户确认。</p>');
+$('#about').onclick=()=>modal('小飞侠 0.1.1 · 关于与范围','<p>这是第一批交互探索稿，非完整工作台、非真实患者服务。</p><p>可走查：三组模拟档案切换、确诊档案与误诊时间线、指标卡 3D 翻转看趋势、一图秀多指标（独立归一化 / 时间窗 / 缩放 / 事件泳道 / 重播）、功能/筛查/症状/私密记录、资源与研究收藏（含 Khub 社区与 OpenRare 工具线索）、复诊 Markdown 导出及模拟面板状态稿。</p><p>尚待：报告导入、生产存储、原生 Agent 实机适配、完整子页与异常状态、用户确认。</p>');
 function setWidth(v){width=Math.min(45,Math.max(25,Number(v)));$('#shell').style.setProperty('--pane',width+'%');$('#width').value=width;$('#split').setAttribute('aria-valuenow',width);$('#split').setAttribute('aria-valuetext',width+'%')}
 function aiToggle(show){if(show&&$('#shell').clientWidth<620){$('#aiStatus').textContent='窄屏已收起';toast('工作区较窄，AI 助手面板已收起；扩大工作区后可打开');return}
   $('#pane').hidden=$('#split').hidden=!show;$('#shell').classList.toggle('with-pane',show);$('#ai').setAttribute('aria-expanded',String(show));$('#ai').setAttribute('aria-label',show?'隐藏 AI 助手':'打开 AI 助手');$('#aiStatus').textContent=show?'宿主状态未验证':'已收起';setWidth(width)}
 $('#ai').onclick=()=>aiToggle($('#pane').hidden);$('#hideAI').onclick=()=>{aiToggle(false);$('#ai').focus()};$('#width').oninput=e=>setWidth(e.target.value);$('#split').onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();setWidth(e.key==='Home'?25:e.key==='End'?45:width+(e.key==='ArrowLeft'?1:-1))}};
 $('#split').onpointerdown=e=>{e.target.setPointerCapture(e.pointerId);e.target.onpointermove=ev=>{const box=$('#shell').getBoundingClientRect();setWidth((box.right-ev.clientX)/box.width*100)};e.target.onpointerup=()=>e.target.onpointermove=null};
 const paneResize=new ResizeObserver(entries=>{const w=entries[0].contentRect.width;document.querySelector('header').classList.toggle('frame-compact',w<=760);if(w<620){$('#nav').classList.add('nav-compact');if(!$('#pane').hidden){aiToggle(false);$('#aiStatus').textContent='窄屏已收起'}}else $('#nav').classList.remove('nav-compact')});paneResize.observe($('#shell'));
-applyProfileHeader();render();
+setTZ(0,false);applyProfileHeader();render();
