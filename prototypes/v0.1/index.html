@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小飞侠 FSHD 工作台 v0.1.0 · 交互原型</title>
+<style>
+:root{
+  --brand:#3EA45F; --brand-light:#7ED957; --accent:#4FB0E8; --ink:#1F3D2E;
+  --body:#48565A; --bg:#F2F8F3; --card:#FFFFFF; --line:#DCE8DF; --warn:#C4632D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Helvetica Neue",sans-serif;background:var(--bg);color:var(--body);font-size:14px;line-height:1.55}
+button{font:inherit;cursor:pointer}
+/* 顶栏 */
+.topbar{display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;position:sticky;top:0;z-index:20}
+.topbar img.logo{height:34px;width:auto}
+.topbar .name{font-size:16px;font-weight:700;color:var(--ink)}
+.topbar .chip{font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:1px 8px;color:var(--body)}
+.topbar .spacer{flex:1}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;color:var(--ink)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+/* 布局：左导航 + 中间主区 + 右 AI pane */
+.shell{display:flex;height:calc(100vh - 51px)}
+.nav{width:180px;flex:none;background:#fff;border-right:1px solid var(--line);padding:10px 6px;overflow:auto}
+.nav a{display:block;padding:8px 12px;border-radius:8px;color:var(--body);text-decoration:none;margin-bottom:2px}
+.nav a.active{background:var(--bg);color:var(--ink);font-weight:600}
+.nav .sub{padding-left:22px;font-size:13px}
+.main{flex:1;min-width:0;overflow:auto;padding:18px 22px 60px}
+.main h1{font-size:19px;color:var(--ink);margin-bottom:4px}
+.main .desc{color:#7a8a80;font-size:13px;margin-bottom:14px}
+/* AI pane */
+.pane{flex:none;border-left:1px solid var(--line);background:#fff;display:flex;flex-direction:column;position:relative}
+.pane-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.pane-head .t{font-weight:700;color:var(--ink)}
+.pane-head .sim{font-size:11px;color:var(--warn);border:1px solid var(--warn);border-radius:8px;padding:0 6px}
+.pane-body{flex:1;overflow:auto;padding:12px;background:var(--bg)}
+.msg{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;max-width:92%}
+.msg.user{margin-left:auto;background:#EAF5EE}
+.msg .meta{font-size:11px;color:#8a9a90;margin-top:4px}
+.pane-input{border-top:1px solid var(--line);padding:10px}
+.pane-input textarea{width:100%;height:60px;border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;resize:vertical}
+.splitter{width:6px;flex:none;cursor:col-resize;background:transparent;position:relative}
+.splitter::after{content:"";position:absolute;left:2px;top:50%;height:44px;width:2px;background:var(--line);border-radius:2px;transform:translateY(-50%)}
+.conflict{background:#FDF3EC;border:1px solid var(--warn);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px}
+.conflict .row{display:flex;gap:8px;margin-top:8px}
+/* 卡片与通用 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.card h2{font-size:15px;color:var(--ink);margin-bottom:8px}
+.card h3{font-size:14px;color:var(--ink);margin:10px 0 6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 10px;font-size:13px}
+.kv .k{color:#7a8a80}
+.tag{display:inline-block;font-size:12px;border-radius:8px;padding:0 8px;border:1px solid var(--line);background:var(--bg);color:var(--body);margin-left:6px}
+.tag.private{border-color:var(--warn);color:var(--warn)}
+.tag.due{border-color:var(--brand);color:var(--brand)}
+.tag.demo{border-color:var(--accent);color:var(--accent)}
+.note{font-size:12px;color:#8a9a80;margin-top:6px}
+.tl{border-left:2px solid var(--line);margin:8px 0 0 6px;padding-left:16px}
+.tl .ev{position:relative;padding-bottom:12px}
+.tl .ev::before{content:"";position:absolute;left:-21px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.tl .ev.confirm::before{background:var(--accent)}
+.tl .ev .when{font-size:12px;color:#8a9a80}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{background:var(--brand);color:#fff;font-weight:600;text-align:left;padding:6px 10px}
+td{border-bottom:1px solid var(--line);padding:6px 10px;background:#fff}
+tr:nth-child(even) td{background:#FAFDFB}
+.bar{height:8px;border-radius:4px;background:var(--bg);border:1px solid var(--line);overflow:hidden;margin:4px 0}
+.bar i{display:block;height:100%;background:var(--brand-light)}
+.quote{background:var(--bg);border-left:3px solid var(--brand-light);padding:8px 12px;border-radius:0 8px 8px 0;font-size:13px;margin:6px 0}
+.footer{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:5px 16px;font-size:12px;color:#8a9a90;z-index:20;display:flex;gap:12px}
+/* 弹层 */
+.modal-mask{position:fixed;inset:0;background:rgba(31,61,46,.35);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:#fff;border-radius:14px;width:480px;max-width:92vw;max-height:80vh;overflow:auto;padding:18px}
+.modal h2{font-size:16px;color:var(--ink);margin-bottom:10px}
+.modal label{display:block;padding:6px 0;border-bottom:1px dashed var(--line)}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+/* 窄窗：620–760 顶栏换行，<620 导航折叠 */
+@media (max-width:760px){ .topbar{flex-wrap:wrap} .nav{width:56px} .nav a span{display:none} }
+@media (max-width:620px){ .nav{width:0;padding:0} .nav a{display:none} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <img class="logo" src="assets/brand/小飞侠logo.jpg" alt="小飞侠 FSHD 工作台 logo">
+  <span class="name">小飞侠 FSHD 工作台</span>
+  <span class="chip" id="ver">v0.1.0</span>
+  <span class="chip demo">交互原型 · demo 数据</span>
+  <span class="spacer"></span>
+  <button class="btn primary" id="aiBtn" aria-expanded="false" aria-controls="aiPane">打开 AI 对话</button>
+  <button class="btn" onclick="go('settings')">设置</button>
+</header>
+
+<div class="shell">
+  <nav class="nav" id="nav"></nav>
+  <main class="main" id="main"></main>
+  <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-valuemin="25" aria-valuemax="45" aria-valuenow="35" tabindex="0" hidden></div>
+  <aside class="pane" id="aiPane" hidden aria-label="AI 对话（宿主模拟）">
+    <div class="pane-head">
+      <span class="t">AI 对话</span><span class="sim">宿主模拟 · 非真实 DSH 会话</span>
+      <span class="spacer" style="flex:1"></span>
+      <button class="btn ghost" id="paneHide" title="仅关闭面板，不清除工作台状态">隐藏</button>
+    </div>
+    <div class="pane-body" id="paneBody">
+      <div class="msg">会话已绑定：<b>demo-conv-001</b>（首次打开创建一次，后续复用）。</div>
+      <div class="msg user">帮我看看下次复诊该带什么？</div>
+      <div class="msg">根据当前记录，复诊准备页汇总了：近半年功能变化 3 条、眼底筛查结果 1 份、CK 报告 2 份。可在「复诊准备」页查看完整清单。<div class="meta">演示回复 · 不构成医疗建议</div></div>
+    </div>
+    <div class="pane-input">
+      <div class="conflict" id="conflictBox" hidden>
+        原生输入框已有草稿，本次带入不会覆盖。可复制到剪贴板或追加到现有草稿之后。
+        <div class="row">
+          <button class="btn" onclick="conflictCopy()">复制带入内容</button>
+          <button class="btn" onclick="conflictAppend()">追加到草稿</button>
+          <button class="btn" onclick="conflictCancel()">取消</button>
+        </div>
+      </div>
+      <textarea id="paneDraft" placeholder="输入消息（此输入框模拟 DSH 原生输入框）"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn primary" onclick="sendMsg()">发送</button></div>
+    </div>
+  </aside>
+</div>
+
+<footer class="footer">
+  <span>小飞侠 FSHD 工作台 v0.1.0</span>
+  <span>交互原型 · 全部为 [UI DEMO] 演示数据，非真实病历</span>
+  <span>本产品只提供信息整理，不提供诊断与治疗建议</span>
+</footer>
+
+<script>
+"use strict";
+const VERSION="0.1.0";
+document.getElementById("ver").textContent="v"+VERSION;
+
+/* ---------- 演示数据 ---------- */
+const D={
+  gene:{repeats:3,haplo:"4qA",method:"光学基因组图谱（OGM）",type:"FSHD1",hospital:"北京协和医院 神经内科",date:"2025-03-14",
+    quote:"4q35 D4Z4 重复单元数目 3，4qA 单倍型，符合 FSHD1 分子诊断特征。"},
+  misdx:[
+    {when:"2021-06",kind:"preliminary",label:"肢带型肌营养不良（LGMD）",hospital:"省人民医院 神经内科"},
+    {when:"2024-11",kind:"revised",label:"修订诊断：考虑 FSHD，建议基因检测",hospital:"北京协和医院 神经内科"},
+    {when:"2025-03",kind:"confirmed",label:"确诊 FSHD1（基因检测）",hospital:"北京协和医院 神经内科"}],
+  family:[{relation:"母亲",status:"未检测（本人暂不打算检测）",note:"父亲疑似新生突变来源待遗传咨询确认"}],
+  func:[
+    {region:"face",ability:"吹气/吹口哨",side:"both",text:"吹气球吹不起来",asym:false,when:"2026-09-02"},
+    {region:"face",ability:"睡眠闭眼",side:"left",text:"左眼闭不严，晨起干涩",asym:true,when:"2026-09-02"},
+    {region:"scapula",ability:"抬臂过肩",side:"right",text:"右臂举不过头顶，翼状肩胛明显",asym:true,when:"2026-10-05"},
+    {region:"lower_limb",ability:"爬楼梯",side:"both",text:"四层楼要歇一次（半年前不用）",asym:false,when:"2026-10-05"},
+    {region:"lower_limb",ability:"足下垂",side:"left",text:"左脚拖步，穿 AFO 后好转",asym:true,when:"2026-08-12"}],
+  devices:[
+    {kind:"afo",name:"定制踝足矫形器（左）",by:"康复科 李医生",on:"2026-08-20",cost:"2800 元",status:"in_use"},
+    {kind:"abdominal_binder",name:"腹带",by:"自行购买",on:"2026-05-11",cost:"120 元",status:"in_use"}],
+  rehab:[{on:"2026-10-12",act:"水中步行 30 分钟",note:"次日无疲劳加重"},{on:"2026-10-08",act:"肩胛稳定练习（视频跟练）",note:"右肩轻微酸"}],
+  screen:[
+    {kind:"眼底（Coats 病）",last:"2025-11-20 · 眼底像未见明显血管异常（原文抄录）",next:"2026-11-20",due:"due"},
+    {kind:"听力（高频）",last:"2025-12-03 · 高频段轻度下降（原文抄录）",next:"2027-03-03",due:"ok"},
+    {kind:"呼吸功能",last:"未查",next:"建议下次复诊时向医生提出",due:"none"},
+    {kind:"脊柱",last:"2026-06-15 · 轻度前凸（骨科门诊记录原文）",next:"2027-06-15",due:"ok"}],
+  symptoms:[
+    {kind:"疼痛",site:"右肩胛周围",trig:"抬臂/久坐",sev:"4/10",when:"2026-10-14"},
+    {kind:"疲劳",site:"全身",trig:"午后",sev:"中等（自述）",when:"2026-10-14"},
+    {kind:"疼痛",site:"腰背部",trig:"站立 30 分钟后",sev:"3/10",when:"2026-09-28"}],
+  metrics:[{code:"CK",d:"2026-09-02",v:412,u:"U/L",ref:"40–320"},{code:"CK",d:"2026-03-11",v:386,u:"U/L",ref:"40–320"},{code:"CK",d:"2025-09-20",v:351,u:"U/L",ref:"40–320"}],
+  cands:[{doc:"肌电图报告 2026-09.pdf",field:"肌电图结论（原文）",val:"肌源性损害，累及面肩肱分布",on:"2026-09-02"},{doc:"生化报告 2026-09.pdf",field:"CK",val:"412 U/L",on:"2026-09-02"}],
+  insurance:[
+    {kind:"慢特病门诊",title:"门诊慢特病待遇认定",status:"submitted",note:"材料：诊断证明、基因报告、病历复印件；2026-09 提交"},
+    {kind:"残疾证",title:"残疾人证办理（肢体）",status:"planned",note:"待医院评残预约"}],
+  resources:[
+    {kind:"org",name:"你并不孤单 FSHD 患者关爱组织",note:"fshd-china.org；病友会与科普"},
+    {kind:"org",name:"FSHD 青年路社区",note:"病友互助社群"},
+    {kind:"channel",name:"病痛挑战基金会 · 罕见病医疗援助工程",note:"救助申请渠道；条款以官方页面为准",unverified:true}],
+  leads:[
+    {name:"AOC 1020（del-desiran）",sponsor:"Avidity Biosciences",
+     reg:"II 期临床试验（HARBOR）进行中；国内尚未开展（未核实，以官方/登记页为准）",
+     clin:"I 期中期数据已公布；具体数值未核实。示例卡片用于展示体例。",
+     card:{a:"属性：抗体偶联寡核苷酸（AOC），siRNA 递送",b:"原理：靶向 DUX4 转录本，抑制肌肉毒性蛋白表达",c:"研发阶段：全球 II 期；关键试验 HARBOR；中国中心情况未核实",d:"已公布数据：I 期中期安全性与生物标志物数据；具体数值未核实"}},
+    {name:"EPI-321",sponsor:"Epic Bio",
+     reg:"I/II 期临床试验登记（CT.gov 可查）",
+     clin:null,
+     card:{a:"属性：表观遗传调控（基因沉默）疗法，注射剂型",b:"原理：不切割 DNA，通过表观遗传抑制 DUX4 表达",c:"研发阶段：全球 I/II 期；中国中心情况未核实",d:"目前无公开临床疗效数据"}}],
+  viewpoints:[
+    {kind:"feeling",text:"最难受的不是身体，是别人以为我在生气。",when:"2026-10-10",priv:true},
+    {kind:"social",text:"新同事问起为什么走路样子不一样，我还没想好说多少。",when:"2026-09-30",priv:true},
+    {kind:"life_work",text:"和主管谈成了每周两天远程办公。",when:"2026-08-22",priv:false}],
+  visit:{next:"2026-11-20（神经内科 随访）",bring:["近半年功能变化记录（3 条新变化）","眼底筛查结果（2025-11-20）","CK 报告（2026-09-02）","问题清单：呼吸功能是否需要基线检查？","辅助器具使用情况：AFO 左"]},
+  tasks:[{t:"预约眼底复查（到期 2026-11-20）",due:"2026-11-20"},{t:"跟踪慢特病申请进度",due:"2026-10-25"},{t:"复诊前整理问题清单",due:"2026-11-15"}]
+};
+
+/* ---------- 导航与渲染 ---------- */
+const NAV=[
+ ["dashboard","看板"],["diagnosis","我的确诊"],["function","功能与康复"],["screening","并发症筛查"],
+ ["symptom","疼痛与疲劳"],["labs","检查与指标"],["onechart","病情一图秀"],["welfare","医保与资源"],
+ ["psy","心理与生活"],["visit","复诊准备"],["research","临床研究"],["settings","设置"]];
+let route="dashboard";
+const main=document.getElementById("main");
+function go(r){route=r;renderNav();render();window.scrollTo(0,0);}
+function renderNav(){
+  document.getElementById("nav").innerHTML=NAV.map(([k,t])=>
+    `<a href="#${k}" class="${k===route?'active':''}" onclick="go('${k}');return false">◆ <span>${t}</span></a>`).join("");
+}
+const h=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const card=(t,body,extra="")=>`<section class="card ${extra}"><h2>${t}</h2>${body}</section>`;
+const privTag=(on)=>`<span class="tag private">${on?"私密 · 不进导出":"可分享"}</span>`;
+const demoTag=`<span class="tag demo">[UI DEMO]</span>`;
+
+const P={};
+P.dashboard=()=>card("现在可以做",`
+  <p style="margin-bottom:8px">目前没有能延缓 FSHD 进展的药物。这个工作台帮你的，是把能做的做扎实：<b>功能维护、并发症早筛、症状记录、资源对接</b>。</p>
+  <ul>${D.tasks.map(t=>`<li>☐ ${h(t.t)} <span class="tag">计划 ${h(t.due)}</span></li>`).join("")}</ul>`)
+ +card("筛查到期",`<div class="grid2">${D.screen.filter(s=>s.due==="due"||s.due==="none").map(s=>
+    `<div> ${h(s.kind)} ${s.due==="due"?'<span class="tag due">建议安排复查</span>':'<span class="tag">尚未查过</span>'}<div class="note">上次：${h(s.last)}<br>下次建议：${h(s.next)}</div></div>`).join("")}</div>
+    <div class="note">到期提醒为中性提示，不做病情判断。</div>`)
+ +card("功能变化摘要",`<p>近 2 个月新增记录 <b>${D.func.filter(f=>f.when>="2026-09").length}</b> 条；右臂抬举与爬楼变化在「功能与康复」可查看时间对比。</p>`)
+ +card("最近变化",`<ul><li>2026-10-14 记录疼痛/疲劳</li><li>2026-10-12 康复记录：水中步行</li><li>2026-10-05 功能自查：爬楼、抬臂</li></ul>
+   <button class="btn ghost" onclick="bringIn('看板摘要：功能近2月新增3条记录；眼底筛查2026-11-20到期')">与 AI 讨论我的看板</button>`);
+
+P.diagnosis=()=>card("基因确诊档案",`
+  <div class="kv">
+    <span class="k">D4Z4 重复数</span><span><b>${D.gene.repeats}</b>（仅抄录，不判读）</span>
+    <span class="k">单倍型</span><span>${h(D.gene.haplo)}</span>
+    <span class="k">检测方法</span><span>${h(D.gene.method)}</span>
+    <span class="k">分型</span><span>${h(D.gene.type)}</span>
+    <span class="k">医院 / 日期</span><span>${h(D.gene.hospital)} · ${D.gene.date}</span>
+  </div><div class="quote">报告原文位：「${h(D.gene.quote)}」</div>
+  <div class="note">本页只做结构化抄录；严重程度与外显预测不由本工作台给出。</div>`)
+ +card("确诊之路（误诊经历留痕）",`<div class="tl">${D.misdx.map(m=>`<div class="ev ${m.kind==='confirmed'?'confirm':''}">
+   <b>${m.kind==='preliminary'?'先被诊断为':m.kind==='revised'?'修订':'确诊'}</b>：${h(m.label)}<br><span class="when">${h(m.when)} · ${h(m.hospital)}</span></div>`).join("")}</div>
+   <div class="note">只新增、不删除历史。这段经历引发情绪时，可到「心理与生活」记录（私密）。</div>`)
+ +card(`家系记录 ${privTag(true)}`,`
+   <p class="note">默认私密：不进导出、不进看板摘要。你的家人信息由你决定何时开放。</p>
+   ${D.family.map(f=>`<p><b>${h(f.relation)}</b>：${h(f.status)}<br><span class="note">${h(f.note)}</span></p>`).join("")}
+   <h3>可讨论问题（遗传咨询准备）</h3><ul><li>我的 FSHD 是遗传来的还是新生突变？</li><li>家系成员检测的意义与流程？</li><li>50% 遗传概率与 20%–30% 新生突变如何理解？</li></ul>
+   <div class="note">术语卡与沟通材料生成在「复诊准备」页。</div>`);
+
+P.function=()=>card("分区功能自查",`
+  <div class="grid2">${D.func.map(f=>`<div><b>${h(f.ability)}</b>（${{face:"面",scapula:"肩胛",upper_arm:"上臂",abdomen:"腹",lower_limb:"下肢"}[f.region]}）${f.asym?'<span class="tag">不对称</span>':''}
+    <div>${h(f.text)}</div><span class="when" style="font-size:12px;color:#8a9a80">${h(f.when)}</span></div>`).join("")}</div>
+  <div class="note">自查只记录"能/不能/变难"，不做量表打分。医生评分（如 FSHD-CSS）只存原文：<i>2026-09-02 门诊记录「FSHD-CSS 由医生评估，原文见报告」</i>。</div>`)
+ +card("辅助器具",`<table><tr><th>器具</th><th>开具人</th><th>日期</th><th>费用</th><th>状态</th></tr>
+   ${D.devices.map(d=>`<tr><td>${h(d.name)}</td><td>${h(d.by)}</td><td>${h(d.on)}</td><td>${h(d.cost)}</td><td>${d.status==="in_use"?"使用中":"—"}</td></tr>`).join("")}</table>
+   <div class="note">工作台不推荐品牌；具体型号由你与医生/康复师决定。</div>`)
+ +card("康复记录（打卡性质）",`<ul>${D.rehab.map(r=>`<li>${h(r.on)} · ${h(r.act)} — ${h(r.note)}</li>`).join("")}</ul>
+   <div class="note">训练方案请遵专业指导；本页仅记录。</div>`);
+
+P.screening=()=>card("四类并发症筛查节奏",`<div class="grid2">${D.screen.map(s=>{
+   const due=s.due==="due"?'<span class="tag due">到期 · 建议安排</span>':s.due==="none"?'<span class="tag">尚未查过</span>':'<span class="tag">按节奏</span>';
+   return `<div><b>${h(s.kind)}</b> ${due}<div class="quote">${h(s.last)}</div><div class="note">下次建议：${h(s.next)}</div>
+   <button class="btn" onclick="addTask('预约：${s.kind}')">加入待办</button></div>`;}).join("")}</div>
+  <div class="note">筛查建议源自 FSHD 常规监测项目（眼底 Coats 病、高频听力、呼吸功能、脊柱）；具体节奏以你的医生为准。</div>`);
+
+P.symptom=()=>{const pains=D.symptoms.filter(s=>s.kind==="疼痛");
+  return card("疼痛记录",`<table><tr><th>日期</th><th>部位</th><th>触发</th><th>程度（原文）</th></tr>
+   ${pains.map(s=>`<tr><td>${h(s.when)}</td><td>${h(s.site)}</td><td>${h(s.trig)}</td><td>${h(s.sev)}</td></tr>`).join("")}</table>
+   <div class="note">趋势图仅呈现记录值（近 3 次：4 → 3 → 4 /10 位置不同），不做"恶化/好转"判断。</div>`)
+  +card("疲劳记录",`<ul>${D.symptoms.filter(s=>s.kind==="疲劳").map(s=>`<li>${h(s.when)} · ${h(s.site)}（触发：${h(s.trig)}）— ${h(s.sev)}</li>`).join("")}</ul>`)
+  +`<section class="card"><h2>新增记录 ${demoTag}</h2>
+    <p><select id="syK"><option>疼痛</option><option>疲劳</option></select>
+    部位 <input id="sySite" style="width:120px" placeholder="如 右肩胛"> 触发 <input id="syTrig" style="width:120px" placeholder="如 久坐">
+    程度 <input id="sySev" style="width:80px" placeholder="如 3/10"> <button class="btn primary" onclick="addSym()">记录</button></p></section>`;};
+
+P.labs=()=>card("CK 趋势（记录用）",`<table><tr><th>日期</th><th>指标</th><th>结果</th><th>参考范围</th></tr>
+  ${D.metrics.map(m=>`<tr><td>${h(m.d)}</td><td>${h(m.code)}</td><td>${m.v} ${h(m.u)}</td><td>${h(m.ref)}</td></tr>`).join("")}</table>
+  <div class="note">FSHD 的 CK 通常正常至轻度升高；解读交给医生。</div>`)
+ +card("待核对候选（导入链路示意）",`<table><tr><th>来源</th><th>字段</th><th>候选值</th><th>操作</th></tr>
+  ${D.cands.map((c,i)=>`<tr><td>${h(c.doc)}</td><td>${h(c.field)}</td><td>${h(c.val)}</td><td><button class="btn" onclick="alert('demo：接受后写入对应事实表，reviewed_by 保持 NULL')">接受</button> <button class="btn" onclick="alert('demo：拒绝仅标记，不写事实表')">拒绝</button></td></tr>`).join("")}</table>
+  <div class="note">解析失败不产候选，原件保留可重试；重复导入按 sha256 去重。</div>`);
+
+P.onechart=()=>card("一图秀 · 确诊 + 功能 + 筛查",`
+  <svg viewBox="0 0 680 200" style="width:100%;background:#fff;border:1px solid var(--line);border-radius:10px">
+    <line x1="30" y1="120" x2="650" y2="120" stroke="#DCE8DF" stroke-width="2"/>
+    ${[["2021-06","先诊 LGMD",60,"#3EA45F"],["2025-03","确诊 FSHD1",60,"#4FB0E8"],["2026-08-20","AFO 配具",250,"#7ED957"],["2026-09-02","抬臂变难",360,"#7ED957"],["2026-11-20","眼底复查到期",520,"#C4632D"]].map(e=>
+      `<circle cx="${e[2]}" cy="120" r="6" fill="${e[3]}"/><text x="${e[2]-24}" y="105" font-size="11" fill="#48565A">${e[1]}</text><text x="${e[2]-30}" y="145" font-size="10" fill="#8a9a90">${e[0]}</text>`).join("")}
+    <text x="30" y="30" font-size="12" fill="#1F3D2E">时间线：确诊事件（蓝）· 功能/器具（绿）· 筛查（橙）— 无"治疗"节点（当前无获批治疗药物）</text>
+  </svg>`)
+ +card("查看方式",`<p>混合序列：确诊节点 + 功能事件（分类）+ 筛查结果（分类）。你的判断/担心记录在「心理与生活」，不进本图。</p>`);
+
+P.welfare=()=>card("医保与救助进行中",`<table><tr><th>事项</th><th>状态</th><th>材料 / 备注</th></tr>
+  ${D.insurance.map(i=>`<tr><td>${h(i.title)}<br><span class="note">${h(i.kind)}</span></td><td>${{submitted:"已提交",planned:"计划中",approved:"已通过",rejected:"未通过",closed:"关闭"}[i.status]}</td><td class="note">${h(i.note)}</td></tr>`).join("")}</table>
+  <div class="note">本页只留痕状态与材料清单，不判断申请资格；每条以官方口径为准。</div>`)
+ +card("组织与资源档案",`<table><tr><th>名称</th><th>说明</th></tr>
+  ${D.resources.map(r=>`<tr><td>${h(r.name)}</td><td class="note">${h(r.note)}${r.unverified?' <span class="tag">未核实</span>':''}</td></tr>`).join("")}</table>`);
+
+P.psy=()=>card("当下感受",`<p class="note">以下是你自己的一条条记录，<b>不是医生结论</b>，不进趋势、不进摘要事实区。默认私密。</p>
+  ${D.viewpoints.filter(v=>v.kind==="feeling").map(v=>`<div class="quote">「${h(v.text)}」<br><span class="note">${h(v.when)} · ${privTag(v.priv)}</span></div>`).join("")}`)
+ +card("身体形象与社交",`${D.viewpoints.filter(v=>v.kind==="social").map(v=>`<div class="quote">「${h(v.text)}」<br><span class="note">${h(v.when)} · ${privTag(v.priv)}</span></div>`).join("")}
+   <p class="note">面部无力常被误解为"生气/冷淡"——这是 FSHD 常见困扰，不是你的问题。是否披露病情、何时披露，由你决定。</p>`)
+ +card("学业 / 就业 / 独立生活（子页）",`${D.viewpoints.filter(v=>v.kind==="life_work").map(v=>`<div class="quote">「${h(v.text)}」<br><span class="note">${h(v.when)} · ${privTag(v.priv)}</span></div>`).join("")}
+   <ul class="note"><li>就业调适记录：远程办公安排</li><li>独立生活：出行无障碍清单（待整理）</li></ul>`)
+ +`<section class="card"><h2>记一条 ${demoTag}</h2>
+    <p><select id="vpK"><option value="feeling">当下感受</option><option value="social">身体形象与社交</option><option value="life_work">学业/就业/生活</option></select>
+    <input id="vpT" style="width:60%" placeholder="写一句想记下来的"> <button class="btn primary" onclick="addVp()">记下（私密）</button></p></section>`;
+
+P.visit=()=>card("下次复诊",`<p><b>${h(D.visit.next)}</b></p>
+  <h3>携带材料（自动汇总）</h3><ul>${D.visit.bring.map(b=>`<li>☐ ${h(b)}</li>`).join("")}</ul>
+  <button class="btn ghost" onclick="bringIn('复诊准备：${D.visit.bring.length}项材料清单已汇总，请帮我整理成提问顺序')">与 AI 讨论复诊准备</button>`)
+ +card("遗传沟通材料",`<p>从「我的确诊 → 家系记录」生成：术语卡（显性遗传 50% / 新生突变 20%–30%）+ 已整理的可讨论问题。默认私密，导出需显式勾选。</p>`)
+ +card("复诊节奏",`<p>神经内科随访：按医嘱（demo：每 6–12 个月）；并发症筛查节奏见「并发症筛查」页。</p>`);
+
+P.research=()=>card("立场",`<p class="note"><b>临床研究不是治疗承诺。</b>每条线索区分「注册节点」与「临床结果」；无公开数据时如实标注。</p>`)
+ +D.leads.map(l=>card(`在研线索 · ${h(l.name)} <span class="tag">${h(l.sponsor)}</span>`,`
+   <div class="kv"><span class="k">注册节点</span><span>${h(l.reg)}</span>
+   <span class="k">临床结果</span><span>${l.clin?h(l.clin):'<b>目前无公开临床疗效数据</b>'}</span></div>
+   <h3>药物卡片（四段式）</h3>
+   <div class="kv">
+     <span class="k">① 药物属性</span><span>${h(l.card.a)}</span>
+     <span class="k">② 治疗原理</span><span>${h(l.card.b)}</span>
+     <span class="k">③ 研发阶段</span><span>${h(l.card.c)}</span>
+     <span class="k">④ 已公布数据</span><span>${h(l.card.d)}</span></div>
+   <div class="note">示例卡片（体例演示）；数值与阶段以官方登记页为准，未核实项已标注。</div>`)).join("")
+ +card("入组问题清单",`<ul><li>试验的入组/排除标准里，功能分期怎么界定？</li><li>国内是否有中心？随访要求？</li><li>安慰剂组的安排是什么？</li></ul>
+   <div class="note">本工作台不排序、不预测入组概率。</div>`);
+
+P.settings=()=>card("患者资料目录",`<div class="kv"><span class="k">状态</span><span>✅ 就绪（demo 路径 ~/Documents/fshd-data）</span></div>
+  <div class="note">业务数据放你明确选择的目录；更换目录不重置患者数据（demo 不提供实际操作）。</div>`)
+ +card("外部解析与凭据",`<div class="kv"><span class="k">MinerU</span><span>已配置 · 来源 .secrets/mineru.json · 掩码 mk-****（密钥不进仓库、不显示明文）</span></div>
+  <div class="note">云处理前会显示本次发送的文件与目的，并取得你的授权；失败时原件保留可重试。</div>`)
+ +card("临床参考数据包",`<p>FSHD 知识包 v2026.10（只读 · 社区维护 · 未加载状态会如实显示）</p>`)
+ +card("隐私默认",`<p><label><input type="checkbox" checked disabled> 家系与心理记录默认私密（fail-closed，导出需显式勾选）</label></p>`)
+ +card("关于",`<p>小飞侠 FSHD 工作台 v${VERSION} · MIT License · 社区贡献者<br>
+  本产品只提供信息整理，不提供诊断与治疗建议；诊断与处置由专业医疗团队确定。</p>`);
+
+/* ---------- 交互 ---------- */
+function addSym(){D.symptoms.unshift({kind:document.getElementById("syK").value,site:document.getElementById("sySite").value||"未填",
+  trig:document.getElementById("syTrig").value||"未填",sev:document.getElementById("sySev").value||"未填",when:"2026-10-18"});render();}
+function addVp(){D.viewpoints.unshift({kind:document.getElementById("vpK").value,text:document.getElementById("vpT").value||"（空）",when:"2026-10-18",priv:true});render();}
+function addTask(t){alert("demo：已加入待办「"+t+"」");}
+function render(){main.innerHTML=(P[route]||P.dashboard)();}
+
+/* ---------- AI pane（右侧 · 宿主模拟） ---------- */
+const pane=document.getElementById("aiPane"),splitter=document.getElementById("splitter"),
+      aiBtn=document.getElementById("aiBtn"),paneBody=document.getElementById("paneBody"),
+      draft=document.getElementById("paneDraft"),conflictBox=document.getElementById("conflictBox");
+let paneOpen=false,paneWidth=35,convCreated=false,pendingBring="";
+function openPane(){
+  if(paneOpen)return;
+  aiBtn.textContent="正在连接…";aiBtn.disabled=true;
+  setTimeout(()=>{ // 模拟：首次按需创建一次会话，之后复用
+    paneOpen=true;convCreated=true;aiBtn.textContent="隐藏 AI 对话";aiBtn.disabled=false;aiBtn.setAttribute("aria-expanded","true");
+    pane.hidden=false;splitter.hidden=false;applyWidth();
+    if(!paneBody.dataset.greeted){paneBody.dataset.greeted="1";}
+  },600);
+}
+function hidePane(){paneOpen=false;pane.hidden=true;splitter.hidden=true;aiBtn.textContent="打开 AI 对话";aiBtn.setAttribute("aria-expanded","false");}
+aiBtn.onclick=()=>paneOpen?hidePane():openPane();
+document.getElementById("paneHide").onclick=hidePane; // 隐藏≠关闭/删除会话
+function applyWidth(){pane.style.width=paneWidth+"%";splitter.setAttribute("aria-valuenow",Math.round(paneWidth));}
+splitter.onkeydown=e=>{if(e.key==="ArrowLeft")setW(paneWidth-2);if(e.key==="ArrowRight")setW(paneWidth+2);
+  if(e.key==="Home")setW(25);if(e.key==="End")setW(45);};
+function setW(v){paneWidth=Math.min(45,Math.max(25,v));applyWidth();}
+splitter.addEventListener("pointerdown",e=>{
+  const shell=splitter.parentElement,move=ev=>{const r=shell.getBoundingClientRect();setW((r.right-ev.clientX)/r.width*100);};
+  const up=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);};
+  window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);});
+function sendMsg(){const t=draft.value.trim();if(!t)return;
+  paneBody.insertAdjacentHTML("beforeend",`<div class="msg user">${h(t)}</div>
+  <div class="msg">（宿主模拟）已收到。真实环境中此处为 DSH 原生会话回复。<div class="meta">演示回复 · 不构成医疗建议</div></div>`);
+  draft.value="";paneBody.scrollTop=paneBody.scrollHeight;}
+/* 一键带入：预览 → 原生草稿冲突保护 */
+function bringIn(text){
+  pendingBring=text;
+  const m=document.createElement("div");m.className="modal-mask";
+  m.innerHTML=`<div class="modal"><h2>带入 AI 对话前预览</h2>
+    <p class="note">只有你勾选的内容会进入草稿；私密记录默认排除。发送仍需你在原生输入框确认。</p>
+    <label><input type="checkbox" checked> ${h(text)}</label>
+    <label><input type="checkbox"> 功能自查：右臂抬举变难（2026-10-05）</label>
+    <label><input type="checkbox" disabled> 心理记录（私密 · 默认排除）</label>
+    <div class="actions"><button class="btn" onclick="this.closest('.modal-mask').remove()">取消</button>
+    <button class="btn primary" onclick="doBring(this)">带入草稿</button></div></div>`;
+  document.body.appendChild(m);}
+function doBring(btn){
+  btn.closest(".modal-mask").remove();
+  if(draft.value.trim()){conflictBox.hidden=false;return;} // 冲突：不覆盖
+  draft.value=pendingBring;draft.focus();}
+let _pending="";
+const _orig=doBring;
+doBring=function(btn){const hadDraft=!!draft.value.trim();_orig(btn);if(hadDraft)_pending=pendingBring;};
+function conflictCopy(){navigator.clipboard&&navigator.clipboard.writeText(pendingBring||_pending).catch(()=>{});conflictBox.hidden=true;alert("demo：已复制（失败时可全选文本复制）");}
+function conflictAppend(){draft.value=draft.value+(draft.value?"\\n":"")+(pendingBring||_pending);conflictBox.hidden=true;}
+function conflictCancel(){conflictBox.hidden=true;}
+
+/* ---------- 启动 ---------- */
+renderNav();render();
+if(location.hash)go(location.hash.slice(1)||"dashboard");
+window.addEventListener("hashchange",()=>go(location.hash.slice(1)||"dashboard"));
+</script>
+</body>
+</html>

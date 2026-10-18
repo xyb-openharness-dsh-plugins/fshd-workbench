@@ -1,0 +1,3 @@
+- insert:
+    - id: fshd-main
+      name: "@xyb-community/fshd-workbench"
