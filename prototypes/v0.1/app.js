@@ -1,6 +1,8 @@
 'use strict';
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pages=['看板','我的确诊','功能与康复','并发症筛查','疼痛与疲劳','检查与指标','病情一图秀','医保与资源','心理与生活','复诊准备','临床研究','设置'];
+/* 导航分组：12 项平铺堆在一起会让左侧像一堵墙，按"看 / 记 / 用"三段收口 */
+const NAV_GROUPS=[['概览',['看板']],['病程与记录',['我的确诊','病情一图秀','检查与指标','功能与康复','并发症筛查','疼痛与疲劳']],['支持与准备',['医保与资源','心理与生活','复诊准备','临床研究']],['',['设置']]];
 const navIcons={'看板':'⌂','我的确诊':'◉','功能与康复':'↗','并发症筛查':'＋','疼痛与疲劳':'≈','检查与指标':'▤','病情一图秀':'⌁','医保与资源':'◇','心理与生活':'♡','复诊准备':'✓','临床研究':'⌕','设置':'⚙'};
 let current='看板', tab='全部', width=35;
 
@@ -193,7 +195,7 @@ return `<section class="card dx dx-record">
 </section>
 <section class="card dx dx-history"><header class="dx-section-head"><div><span class="dx-icon" aria-hidden="true">↻</span><div><h2>确诊历程</h2><p>按记录时间回看诊断如何逐步明确</p></div></div><span class="tag">${p.misdx.length} 个节点</span></header>
   <ol class="dx-steps">${steps}</ol>
-  <div class="dx-history-link"><span>这段经历带来情绪压力？</span><button class="task-link" data-page="心理与生活">整理感受（默认私密） →</button></div>
+  <div class="dx-history-link"><span>这段经历也有情绪压力</span><button class="task-link" data-page="心理与生活">私下整理 →</button></div>
 </section>
 <section class="card private dx dx-family-card"><header class="dx-section-head"><div><span class="dx-icon dx-icon-private" aria-hidden="true">⌂</span><div><h2>家系记录</h2><p>仅你决定是否用于遗传咨询</p></div></div><span class="tag private"><span aria-hidden="true">▣</span> 私密 · 不进导出</span></header>
   <div class="dx-family">${p.family.map(f=>`<article class="dx-fam"><span class="dx-fam-mark" aria-hidden="true">${esc(f.relation.slice(0,1))}</span><div class="dx-fam-copy"><b>${esc(f.relation)}</b><span>${esc(f.status)}</span><small>${esc(f.note)}</small></div></article>`).join('')}</div>
@@ -244,16 +246,14 @@ function metricCard(p,m){
     </span></button>`;
 }
 function metricCardGrid(p){
-  return METRIC_CATS.map(c=>{const ms=METRICS.filter(m=>m.cat===c&&seriesOf(p,m.code).length);
-    if(!ms.length)return '';
-    return `<div class="metric-group"><div class="metric-group-head"><h3>${esc(c)}</h3><span>${ms.length} 项</span></div>
-      <div class="metric-grid">${ms.map(m=>metricCard(p,m)).join('')}</div></div>`;}).join('');
+  const ms=METRICS.filter(m=>seriesOf(p,m.code).length);
+  return `<div class="metric-grid">${ms.map(m=>metricCard(p,m)).join('')}</div>`;
 }
 
 /* ---------- 检查与指标 ---------- */
 function renderLabs(p){
 const ckM=metricBy('ck'),ckPts=seriesOf(p,'ck');
-return card('指标卡 · 点击翻转看最近趋势','<p class="note" style="margin-bottom:8px">正面给末值与变化；背面给该指标最近若干次的迷你折线。只有 1 次记录时不连线。检验值按百分比、功能与量表按绝对量标注变化（带单位）。</p>'+metricCardGrid(p))
+return card('指标卡 · 点击翻转看最近趋势','<p class="note" style="margin-bottom:8px">点卡片翻到背面看趋势；只有 1 次记录时不连线。</p>'+metricCardGrid(p))
 +card('肌电图与其他报告',`<div class="quote">${esc(p.emg)}</div>
   <div class="table-wrap"><table><tr><th>来源</th><th>字段</th><th>候选值</th><th>状态</th></tr>
   <tr><td>肌电图报告（模拟）</td><td>结论（原文）</td><td>${esc(p.emg.split('：').slice(1).join('：')||'—')}</td><td><span class="tag orange">待核对</span></td></tr>
@@ -295,13 +295,16 @@ function smoothPath(coords){
   return d;
 }
 function monthTicks(t0,t1){
-  const out=[];let cur=new Date(new Date(t0).getFullYear(),new Date(t0).getMonth(),1);
+  const all=[];let cur=new Date(new Date(t0).getFullYear(),new Date(t0).getMonth(),1);
   if(cur.getTime()<t0)cur.setMonth(cur.getMonth()+1);
   while(cur.getTime()<=t1){const x=xOf(cur.getTime(),t0,t1);
-    if(x>CX0+6&&x<CX1-6)out.push({x,label:(cur.getMonth()+1)+'月'});
+    if(x>CX0+6&&x<CX1-6)all.push({x,year:cur.getFullYear(),month:cur.getMonth()+1});
     cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
-  if(out.length>7)return out.filter((_,i)=>i%2===0);
-  return out;
+  const step=all.length>7?2:1;
+  const picked=all.filter((_,i)=>i%step===0);
+  const spanYears=new Date(t0).getFullYear()!==new Date(t1).getFullYear();
+  /* 跨年时只在首个刻度与每年 1 月标年份，其余仍用「N月」，避免刻度变成一串数字 */
+  return picked.map((t,i)=>({x:t.x,label:(spanYears&&(i===0||t.month===1))?`${t.year}年${t.month}月`:`${t.month}月`}));
 }
 
 function renderOneChart(p){
@@ -316,25 +319,23 @@ return `<div class="chips" aria-label="时间范围">${RANGES.map(([k,l])=>`<but
     <details class="pick" ${window.innerWidth>900?'open':''}>
       <summary>选择指标 <small>最多 4 个 · 已选 ${st.sel.length}</small></summary>
       <div class="metric-list">${groups.map(g=>`<div class="cat-label">${esc(g.cat)}</div>${g.codes.filter(c=>seriesOf(p,c.code).length).map(c=>`<label class="metric-pick"><input type="checkbox" ${st.sel.includes(c.code)?'checked':''} data-pick="${c.code}"><i style="background:${c.color}"></i><span>${esc(c.name)}</span><small>${seriesOf(p,c.code).length} 次</small></label>`).join('')}`).join('')}</div>
-      <p class="small-note">最多 4 条；勾选第 5 条会被拒绝并提示。</p></details>
+      </details>
     <section><h3>显示</h3>
       <div class="chips">
         <button class="chip" aria-pressed="${st.toggles.events}" data-action="toggle" data-key="events">事件节点</button>
         <button class="chip" aria-pressed="${st.toggles.endLabels}" data-action="toggle" data-key="endLabels">末点数值</button>
         <button class="chip" aria-pressed="${st.toggles.changes}" data-action="toggle" data-key="changes">变化标注</button></div></section>
     <section><h3>时间窗缩放</h3>
-      <div class="zoom"><input type="range" min="40" max="100" value="${st.zoom}" data-action="zoom" aria-label="时间窗缩放"><span>${st.zoom}%</span></div>
-      <p class="small-note">右端锚定最新记录；40% 表示只看最近四成时间。</p></section>
-    <section><h3>口径</h3>
-      <p class="small-note">每条线按该指标<b>全部记录</b>的最小值–最大值归一化，只用于同屏回顾，不能比较不同指标的绝对值；切换时间窗不改变纵向映射。检验类变化按百分比，功能与量表按绝对量（带单位）。</p></section>
-    <button class="primary" id="btnReplay">重播趋势动画</button>
-    <p class="small-note">重播只重启图表动画，不重置筛选、翻卡状态与滚动位置。</p>
+      <div class="zoom"><input type="range" min="40" max="100" value="${st.zoom}" data-action="zoom" aria-label="时间窗缩放，右端锚定最新记录" title="右端锚定最新记录；40% 表示只看最近四成时间"><span>${st.zoom}%</span></div>
+      </section>
+    <details class="pick"><summary>口径 <small>归一化怎么算</small></summary>
+      <p class="small-note">每条线按该指标<b>全部记录</b>的最小值–最大值归一化，只用于同屏回顾，不能比较不同指标的绝对值；切换时间窗不改变纵向映射。检验类变化按百分比，功能与量表按绝对量（带单位）。</p></details>
+    <button class="primary" id="btnReplay" title="只重启动画，不重置筛选、翻卡状态与滚动位置">重播趋势动画</button>
   </aside>
   <div class="timeline-main">
     <div class="chart-panel">
       <div class="chart-top">
-        <div><h2>已选 ${st.sel.length} 项 · ${RANGE_LABEL[st.range]}</h2>
-          <p class="small-note">点击数据点固定详情；事件泳道独立于数据区上方，引线不穿过曲线。</p></div>
+        <div><h2>已选 ${st.sel.length} 项 · ${RANGE_LABEL[st.range]}</h2></div>
         <span class="pill">${rng}</span></div>
       <div class="legend" id="chartLegend"></div>
       <div class="chart-wrap" id="chartWrap"></div>
@@ -375,7 +376,12 @@ function drawChart({animate=false}={}){
 
   const grid=[0,1,2,3,4].map(i=>{const y=plotTop+i*(plotBottom-plotTop)/4;
     return `<line class="grid" x1="${CX0}" x2="${CX1}" y1="${y}" y2="${y}"/>`}).join('');
-  const ticks=monthTicks(t0,t1).map(t=>`<line class="axis" x1="${t.x.toFixed(1)}" x2="${t.x.toFixed(1)}" y1="${plotBottom}" y2="${plotBottom+5}"/><text class="tick" x="${t.x.toFixed(1)}" y="${plotBottom+18}" text-anchor="middle">${t.label}</text>`).join('');
+  const tickData=monthTicks(t0,t1);
+  const ticks=tickData.map(t=>`<line class="axis" x1="${t.x.toFixed(1)}" x2="${t.x.toFixed(1)}" y1="${plotBottom}" y2="${plotBottom+5}"/><text class="tick" x="${t.x.toFixed(1)}" y="${plotBottom+18}" text-anchor="middle">${t.label}</text>`).join('');
+  /* 竖向淡网格：让时间轴有"刻度感"，比只有水平线更容易读月份位置 */
+  const vgrid=tickData.map(t=>`<line class="vgrid" x1="${t.x.toFixed(1)}" x2="${t.x.toFixed(1)}" y1="${plotTop}" y2="${plotBottom}"/>`).join('');
+  /* 泳道与数据区的分隔线：事件引线到这里为止 */
+  const laneRule=`<line class="lane-rule" x1="${CX0}" x2="${CX1}" y1="${plotTop-12}" y2="${plotTop-12}"/>`;
 
   /* 事件泳道：独立行，引线止于数据区上沿，不穿过曲线 */
   let strip='',markLines='';
@@ -391,7 +397,7 @@ function drawChart({animate=false}={}){
         ${shape}<text class="ev-label" x="${(left+labelWidth/2).toFixed(1)}" y="${row-7}" text-anchor="middle" fill="${col}">${esc(e.title)} · ${status.label}</text><title>${esc(e.d)} · ${esc(e.title)} · ${status.label} · 来源：${esc(e.src||'未记录')}</title></g>`;
       markLines+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${row+8}" y2="${plotTop-9}" stroke="${col}" stroke-width="1" stroke-dasharray="3 5" opacity=".42"/>`;});
     if(!visibleEvents.length)strip=`<text class="tick" x="${CX0}" y="38">当前时间窗内没有事件；扩大时间范围可查看。</text>`;
-    else strip+=`<text x="8" y="38" font-size="9" fill="#8fa1b5">事件</text>`;
+    else strip+=`<text class="lane-caption" x="${CX0-8}" y="20" text-anchor="end">事件</text>`;
   }
 
   /* 末点标签：按 y 排序强制最小间距 13px，右端左锚定 */
@@ -418,24 +424,23 @@ function drawChart({animate=false}={}){
   if(animate)st.animationRunId=(st.animationRunId||0)+1;
   wrap.innerHTML=`<svg class="chart${animate?' chart-animate':''}" id="onechartSvg" data-animation-run="${st.animationRunId||0}" viewBox="0 0 ${CW} ${chartHeight}" role="group"
     aria-label="所选指标时序图，共 ${series.length} 条序列；每条线按自身全部记录范围归一化，不代表数值可比">
-    ${grid}${ticks}${markLines}${lines}${strip}
+    ${vgrid}${grid}${ticks}${laneRule}${markLines}${lines}${strip}
     <text class="tick" x="${CX0}" y="${plotBottom+36}">各序列按自身全部记录的最小值–最大值归一化，不代表数值可比</text>
   </svg><div class="chart-tip" id="chartTip"></div>`;
   wrap.scrollLeft=scrollLeft;
 
   /* 图例：末值 + 全期范围 + 变化（按指标类型选口径） */
   legend.innerHTML=series.map(s=>{
-    const all=seriesOf(p,s.m.code),vals=all.map(x=>x[1]),last=s.pts[s.pts.length-1];
+    const all=seriesOf(p,s.m.code),last=s.pts[s.pts.length-1];
     const idx=all.findIndex(x=>x[0]===last[0]),prev=idx>0?all[idx-1]:null;
     let chg='';
     if(st.toggles.changes&&prev){const d=last[1]-prev[1];
-      if(d===0)chg='较上次无变化';
+      if(d===0)chg='无变化';
       else if(s.m.delta==='pct')chg=(d>0?'+':'')+(d/Math.abs(prev[1])*100).toFixed(1)+'%';
       else chg=(d>0?'+':'')+fmt(s.m,d)+' '+s.m.unit.replace(/\s*\/.*/,'');}
     return `<span><i style="background:${s.m.color}"></i><b>${esc(s.m.name)}</b>
-      <span>末值 ${fmt(s.m,last[1])} ${esc(s.m.unit)}</span>
-      <span class="range">全期 ${fmt(s.m,Math.min(...vals))}–${fmt(s.m,Math.max(...vals))}</span>
-      ${s.pts.length<2?'<span class="tag">只有 1 次记录，暂不连线</span>':chg?`<span class="tag">较上次 ${esc(chg)}</span>`:''}</span>`;}).join('');
+      <span class="legend-val">${fmt(s.m,last[1])} ${esc(s.m.unit)}</span>
+      ${s.pts.length<2?'<span class="tag">单点</span>':chg?`<span class="tag">${esc(chg)}</span>`:''}</span>`;}).join('');
 
   /* 图下事件标签：与图上节点同一 id */
   if(!st.toggles.events)tags.innerHTML='<p class="small-note">事件显示已关闭；记录没有被删除。</p>';
@@ -497,10 +502,10 @@ function drawChart({animate=false}={}){
 function replayChart(){drawChart({animate:true})}
 
 function render(){
-$('#nav').innerHTML=pages.map(p=>`<button data-page="${p}" aria-label="${p}" title="${p}" ${p===current?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${navIcons[p]}</span><span class="nav-label">${p}</span></button>`).join('')+`<small>档案：${esc(cur().name)}<br>当前为分批探索稿<br>完整原型未签认</small>`;
+$('#nav').innerHTML=NAV_GROUPS.map(([g,ps])=>`<div class="nav-group">${g?`<span class="nav-group-label">${g}</span>`:''}${ps.map(p=>`<button data-page="${p}" aria-label="${p}" title="${p}" ${p===current?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${navIcons[p]}</span><span class="nav-label">${p}</span></button>`).join('')}</div>`).join('')+`<span class="nav-foot">画像稿 · 未签认</span>`;
 const p=cur();
-let html=`<div class="page-head"><div class="eyebrow">我的 FSHD 工作台 / ${esc(current)}</div><h1>${esc(current)}</h1></div>`;
-if(current==='看板')html+=`<section class="hero"><h1>记录变化，<br>准备下一次复诊。</h1><p>从今天最想完成的一件事开始。你的生活任务、功能变化和问题，可以一起带到诊室。当前档案：${esc(p.name)}（${esc(p.meta)}）。</p></section><div class="grid">${card('今天想先做什么？',jump('功能与康复','记录一项生活任务的变化')+jump('并发症筛查','整理医生建议的检查计划')+jump('复诊准备','准备复诊问题与材料'),'feature')}${card('把支持带进日常',jump('医保与资源','找患者组织与诊疗线索')+jump('临床研究','核对听说的新药进展')+jump('心理与生活','整理私密困扰与支持需要'))}</div><div class="grid section">${card('筛查计划',records().filter(r=>r.kind==='并发症筛查').length?'<p>已记录 '+records().filter(r=>r.kind==='并发症筛查').length+' 条模拟计划。无建议日期的项目保持待确认。</p>'+jump('并发症筛查','查看计划'):'<div class="empty">还没有专业建议日期。与医生确认后再记录，不自动推算逾期。</div>')}${card('本次记录',`<p>${records().filter(r=>!r.private).length} 条公开模拟记录 · ${saved().size} 条已收藏线索</p><small>私密心理记录不出现在看板摘要中。切右上角档案可看 ${PROFILES.map(x=>x.name).join(' / ')} 三组画像。</small>` )}</div><details class="section"><summary>💡 为什么有这些入口？</summary><p>中国患者研究归纳了五类诉求：靶向药、辅助器具、心理支持、就业机会和更包容的社会环境。五项没有全国统一量化名次。</p><a href="https://doi.org/10.1186/s41687-026-01026-z" target="_blank" rel="noopener noreferrer">查看2026患者研究</a></details>`;
+let html=current==='看板'?'':'<div class="page-head"><h1>'+esc(current)+'</h1></div>';
+if(current==='看板')html+=`<section class="hero"><h1>记录变化，准备下一次复诊。</h1><p>从今天最想完成的一件事开始。生活任务、功能变化和想问的问题，可以一起带到诊室。</p></section><div class="grid">${card('今天想先做什么？',jump('功能与康复','记录一项生活任务的变化')+jump('并发症筛查','整理医生建议的检查计划')+jump('复诊准备','准备复诊问题与材料'),'feature')}${card('把支持带进日常',jump('医保与资源','找患者组织与诊疗线索')+jump('临床研究','核对听说的新药进展')+jump('心理与生活','整理私密困扰与支持需要'))}</div><div class="grid section">${card('筛查计划',records().filter(r=>r.kind==='并发症筛查').length?'<p>已记录 '+records().filter(r=>r.kind==='并发症筛查').length+' 条模拟计划。无建议日期的项目保持待确认。</p>'+jump('并发症筛查','查看计划'):'<div class="empty">还没有专业建议日期。与医生确认后再记录，不自动推算逾期。</div>')}${card('本次记录',`<p>${records().filter(r=>!r.private).length} 条公开模拟记录 · ${saved().size} 条已收藏线索</p><small>私密心理记录不出现在看板摘要中。切右上角档案可看 ${PROFILES.map(x=>x.name).join(' / ')} 三组画像。</small>` )}</div><details class="section"><summary>💡 为什么有这些入口？</summary><p>中国患者研究归纳了五类诉求：靶向药、辅助器具、心理支持、就业机会和更包容的社会环境。五项没有全国统一量化名次。</p><a href="https://doi.org/10.1186/s41687-026-01026-z" target="_blank" rel="noopener noreferrer">查看2026患者研究</a></details>`;
 else if(current==='我的确诊')html+=renderDiagnosis(p);
 else if(current==='检查与指标')html+=renderLabs(p);
 else if(current==='病情一图秀')html+=renderOneChart(p);
