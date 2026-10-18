@@ -1,0 +1,20 @@
+{
+  "checked_on": "2026-10-18",
+  "javascript_syntax": {
+    "passed": true,
+    "exit_code": 0
+  },
+  "local_assets": {
+    "passed": true,
+    "checked": [
+      "style.css",
+      "assets/brand/小飞侠logo.jpg",
+      "app.js"
+    ],
+    "missing": []
+  },
+  "manifest_hashes_match": true,
+  "browser_interaction": "not_verified_file_url_blocked",
+  "actual_download": "not_verified",
+  "production_or_desktop": "not_tested"
+}

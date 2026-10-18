@@ -1,6 +1,6 @@
 # 数据主体—关系—表 · 小飞侠 FSHD 工作台 v0.1
 
-日期：2026-10-18。状态：**设计草案，未冻结；G3 通过前不建库、不写正式迁移**。草案 SQL：`schema/draft/0001_initial.sql`。
+日期：2026-10-18。状态：**设计草案，未冻结；G3 通过前不建库、不写正式迁移**。文内实体仅为候选；当前目录未发现 `schema/draft/0001_initial.sql`，不声称已有SQL草案。
 
 ## 1. 四层边界（同家族约定）
 
@@ -68,3 +68,16 @@
 ## 4. 选型
 
 SQLite（本机文件，`node:sqlite`）；与家族 breast/ovarian 同构，复用 migrate() 增量迁移、`scripts/check-schema.mjs` 冻结合同检查（冻结动作在 G3 通过后执行）。规模：单患者十年量级万行以内，无并发写者，离线优先。
+
+
+## 5. 研究增补候选（未冻结）
+
+- 公共intervention_reference与study独立；同药物别名映射稳定ID，监管地区/批准、注册阶段、招募、结果分列；结果细分生物标志物/功能/安全性、样本、对照、随访、来源类型与日期。
+- study_access包含地点、往返次数、过夜、陪护、交通/误工和补偿，各项允许unknown，不以NULL推断无成本。
+- reference_resource具有主体、服务类别、地区、证据类型、来源/checked_on/revision；alias_relation须带verified状态，不自动合并相似组织。private_resource_contact_log存患者个人申请与咨询，不污染公共参考。
+- screening_plan与screening_event分离：专业建议原文/出处、适用条件、计划日期可未知；不由重复数直接推导医嘱。功能事实增加life_task与fall_event来源关系，不复制到每个Tab。
+- psychosocial_support_request、accommodation_request、accessibility_check均为可选私密流程；记录期望/动作/回应/回顾，和病情事实隔离。
+- gene_report_finding保留FSHD2甲基化及相关基因原文与方法局限，类型可未知；不自动临床解释。
+- 变化走查：加心理入口不新增事实副本；改药名只加alias；重开咨询保留旧版本；改筛查日期生成计划修订不改历史检查；删收藏不删公共来源；断网保留带日期缓存且不标实时核实。
+
+HTML探索稿records仅用于演示，不作为生产表结构；尚未选择/验证实际SQLite版本与正式迁移。
