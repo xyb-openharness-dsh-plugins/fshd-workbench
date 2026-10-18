@@ -20,7 +20,18 @@ const PROFILES=[
   chartEvents:[
     {d:'2025-03-14',kind:'gene',title:'确诊 FSHD1'},
     {d:'2026-08-20',kind:'device',title:'AFO 配具'},
-    {d:'2026-11-20',kind:'screen',title:'眼底复查到期'}]},
+    {d:'2026-11-20',kind:'screen',title:'眼底复查到期'}],
+  seed:[
+    {kind:'功能与康复',date:'2026-10-05',type:'画像预置 · 本人观察',region:'肩胛 / 上肢',side:'右',note:'抬臂过肩困难，翼状肩胛明显（不对称）',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-09-02',type:'画像预置 · 本人观察',region:'面部',side:'双侧',note:'吹气球吹不起来；睡眠时左眼闭不严，晨起干涩（不对称）',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-08-20',type:'画像预置 · 辅助器具',region:'下肢',side:'左',note:'定制塑料 AFO 交付（康复科 李医生开具，2800 元），左脚拖步改善',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-10-12',type:'画像预置 · 康复 / 支持性干预',region:'躯干',side:'双侧',note:'水中步行 30 分钟，次日无疲劳加重',source:'走查模拟'},
+    {kind:'并发症筛查',date:'2025-11-20',type:'画像预置 · 专业建议原文',region:'眼底',side:'双侧',note:'眼底像未见明显血管异常（原文抄录）；建议每年复查',source:'走查模拟',due:'2026-11-20'},
+    {kind:'并发症筛查',date:'2026-06-15',type:'画像预置 · 专业建议原文',region:'肌骨 / 脊柱',side:'双侧',note:'骨科门诊：轻度脊柱前凸，继续观察（原文抄录）',source:'走查模拟',due:'2027-06-15'},
+    {kind:'疼痛与疲劳',date:'2026-10-14',type:'画像预置 · 本人观察',region:'肩胛 / 上肢',side:'右',note:'右肩胛周围疼痛 4/10，抬臂、久坐触发',source:'走查模拟'},
+    {kind:'疼痛与疲劳',date:'2026-09-28',type:'画像预置 · 本人观察',region:'躯干',side:'双侧',note:'腰背部疼痛 3/10，站立 30 分钟后出现',source:'走查模拟'},
+    {kind:'心理与生活',date:'2026-10-10',type:'画像预置 · 本人观察',region:'',side:'',note:'最难受的不是身体，是别人以为我在生气',source:'走查模拟',private:true},
+    {kind:'心理与生活',date:'2026-08-22',type:'画像预置 · 本人观察',region:'',side:'',note:'和主管谈成了每周两天远程办公',source:'走查模拟'}]},
 { id:'p2', name:'周航', initial:'周', meta:'FSHD1 · 22 岁 · 确诊期（大学生）',
   gene:{repeats:2,haplo:'4qA',method:'实时荧光定量 PCR（qPCR）+ Southern Blot 复核',type:'FSHD1',hospital:'福建医科大学附属第一医院 神经内科',date:'2026-08-30',
     quote:'D4Z4 重复单元数目 2（qPCR），Southern Blot 复核一致，4qA 单倍型。'},
@@ -33,7 +44,18 @@ const PROFILES=[
   emg:'2026-06-20 肌电图：轻度肌源性改变（报告原文待录入）',
   chartEvents:[
     {d:'2026-08-30',kind:'gene',title:'确诊 FSHD1'},
-    {d:'2026-11-10',kind:'screen',title:'基线筛查（计划）'}]},
+    {d:'2026-11-10',kind:'screen',title:'基线筛查（计划）'}],
+  seed:[
+    {kind:'功能与康复',date:'2026-09-10',type:'画像预置 · 本人观察',region:'肩胛 / 上肢',side:'双侧',note:'引体向上做不了，举哑铃吃力',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-09-10',type:'画像预置 · 本人观察',region:'面部',side:'双侧',note:'吹口哨一直不会，确诊后才明白是症状',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-09-10',type:'画像预置 · 本人观察',region:'躯干',side:'双侧',note:'仰卧起坐做不起来，腹部略前凸',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-10-02',type:'画像预置 · 康复 / 支持性干预',region:'下肢',side:'双侧',note:'游泳 40 分钟（自由泳），无不适',source:'走查模拟'},
+    {kind:'并发症筛查',date:'2026-09-05',type:'画像预置 · 专业建议原文',region:'眼底',side:'双侧',note:'确诊后建议做基线眼底检查（尚未做，计划 11 月）',source:'走查模拟',due:'2026-11-10'},
+    {kind:'并发症筛查',date:'2026-09-05',type:'画像预置 · 专业建议原文',region:'听力',side:'双侧',note:'确诊后建议做基线听力检查（尚未做）',source:'走查模拟',due:'2026-11-10'},
+    {kind:'疼痛与疲劳',date:'2026-09-18',type:'画像预置 · 本人观察',region:'躯干',side:'双侧',note:'剧烈运动后恢复比同学慢（自述）',source:'走查模拟'},
+    {kind:'心理与生活',date:'2026-09-01',type:'画像预置 · 本人观察',region:'',side:'',note:'拿到报告那天反而松了口气——终于知道不是自己不努力',source:'走查模拟',private:true},
+    {kind:'心理与生活',date:'2026-09-15',type:'画像预置 · 本人观察',region:'',side:'',note:'还没告诉室友，怕被当成梗来玩',source:'走查模拟',private:true},
+    {kind:'心理与生活',date:'2026-10-01',type:'画像预置 · 本人观察',region:'',side:'',note:'保研计划照旧，导师那边先不说',source:'走查模拟'}]},
 { id:'p3', name:'陈静', initial:'陈', meta:'FSHD1 · 41 岁 · 轻症外显（家系已知）',
   gene:{repeats:4,haplo:'4qA',method:'Southern Blot',type:'FSHD1',hospital:'上海华山医院 神经内科',date:'2019-05-22',
     quote:'D4Z4 重复单元数目 4，4qA 单倍型；与家系中已确诊成员一致的分子特征。'},
@@ -46,12 +68,25 @@ const PROFILES=[
   emg:'2019-04 肌电图：轻度肌源性改变（历史报告）',
   chartEvents:[
     {d:'2019-05-22',kind:'gene',title:'确诊 FSHD1（家系）'},
-    {d:'2026-10-25',kind:'screen',title:'呼吸功能复查到期'}]}
+    {d:'2026-10-25',kind:'screen',title:'呼吸功能复查到期'}],
+  seed:[
+    {kind:'功能与康复',date:'2026-10-01',type:'画像预置 · 本人观察',region:'肩胛 / 上肢',side:'右',note:'右肩偶发酸胀，抬臂可完成（不对称）',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-10-01',type:'画像预置 · 本人观察',region:'下肢',side:'双侧',note:'爬楼无困难；长距离步行后小腿酸',source:'走查模拟'},
+    {kind:'功能与康复',date:'2026-10-15',type:'画像预置 · 康复 / 支持性干预',region:'躯干',side:'双侧',note:'快走 5 公里（照护者保持自身体力）',source:'走查模拟'},
+    {kind:'功能与康复',date:'2024-03-15',type:'画像预置 · 辅助器具',region:'躯干',side:'双侧',note:'定制背部紧身胸衣（备而未用，1600 元）',source:'走查模拟'},
+    {kind:'并发症筛查',date:'2026-04-10',type:'画像预置 · 专业建议原文',region:'眼底',side:'双侧',note:'未见异常（原文抄录）；每年复查',source:'走查模拟',due:'2027-04-10'},
+    {kind:'并发症筛查',date:'2026-04-10',type:'画像预置 · 专业建议原文',region:'听力',side:'双侧',note:'正常（原文抄录）；每年复查',source:'走查模拟',due:'2027-04-10'},
+    {kind:'并发症筛查',date:'2025-10-18',type:'画像预置 · 专业建议原文',region:'呼吸',side:'双侧',note:'正常（原文抄录）；下次 2026-10-25（到期）',source:'走查模拟',due:'2026-10-25'},
+    {kind:'疼痛与疲劳',date:'2026-09-20',type:'画像预置 · 本人观察',region:'肩胛 / 上肢',side:'右',note:'提重物后右肩痛 2/10',source:'走查模拟'},
+    {kind:'心理与生活',date:'2026-09-12',type:'画像预置 · 本人观察',region:'',side:'',note:'比母亲轻很多，但她每次摔倒我心都会一沉',source:'走查模拟',private:true},
+    {kind:'心理与生活',date:'2026-08-30',type:'画像预置 · 本人观察',region:'',side:'',note:'女儿的检测决定权留给她自己，我先把材料准备好',source:'走查模拟'}]}
 ];
 let profileId='p1';
 const cur=()=>PROFILES.find(p=>p.id===profileId)||PROFILES[0];
 const stateOf=id=>{stateOf.map=stateOf.map||{};const k=id;
-  if(!stateOf.map[k])stateOf.map[k]={records:[],saved:new Set()};return stateOf.map[k];};
+  if(!stateOf.map[k]){const p=PROFILES.find(x=>x.id===k);
+    stateOf.map[k]={records:(p&&p.seed?p.seed:[]).map((s,i)=>({...s,id:'seed-'+k+'-'+i})),saved:new Set()};}
+  return stateOf.map[k];};
 const records=()=>stateOf(profileId).records, saved=()=>stateOf(profileId).saved;
 
 /* 公共资源与研究线索（与档案无关；核对日 2026-10-18） */
@@ -193,7 +228,7 @@ if(current==='看板')html+=`<section class="hero"><h1>记录变化，<br>准备
 else if(current==='我的确诊')html+=renderDiagnosis(p);
 else if(current==='检查与指标')html+=renderLabs(p);
 else if(current==='病情一图秀')html+=renderOneChart(p);
-else if(['功能与康复','并发症筛查','疼痛与疲劳','心理与生活'].includes(current)){const descriptions={'功能与康复':'关注洗头、穿衣、起身、上下台阶等具体任务。记录不对称、辅具体验、跌倒或专业建议，不自行生成训练方案。','并发症筛查':'记录适用于自己的专业建议。眼、听力、呼吸与肌骨评估的条件不同，不预设人人每年四项检查。','疼痛与疲劳':'记录发生情境和对生活的影响，帮助复诊时说清楚，不自动判断好转或恶化。','心理与生活':'这里的感受记录默认私密，不进入看板、复诊导出或 AI 草稿。学业就业、独立生活与沟通材料保持原有子页归属。'};html+=`<p>${descriptions[current]}</p><div class="row"><span class="pill">当前页面内存模拟</span><button class="primary" id="add">新增模拟记录</button></div><div class="card section ${current==='心理与生活'?'private':''}">${recordList(current)}</div>`;if(current==='心理与生活')html+=`<div class="card section"><h2>支持与生活事项</h2><p>可先记录：我最需要什么支持、愿意告诉谁、工作/学业希望怎样调整、出行需要核实哪些无障碍条件。完整子页尚待原型细化。</p>${jump('医保与资源','查看支持资源')}</div>`;}
+else if(['功能与康复','并发症筛查','疼痛与疲劳','心理与生活'].includes(current)){const descriptions={'功能与康复':'关注洗头、穿衣、起身、上下台阶等具体任务。下面含「画像预置」的模拟记录与你新增的记录；不对称、辅具体验、跌倒或专业建议都可记录，不自行生成训练方案。','并发症筛查':'记录适用于自己的专业建议。眼、听力、呼吸与肌骨评估的条件不同，不预设人人每年四项检查。预置条目展示典型节奏，具体以医生建议为准。','疼痛与疲劳':'记录发生情境和对生活的影响，帮助复诊时说清楚，不自动判断好转或恶化。','心理与生活':'这里的感受记录默认私密，不进入看板、复诊导出或 AI 草稿。学业就业、独立生活与沟通材料保持原有子页归属。'};html+=`<p>${descriptions[current]}</p><div class="row"><span class="pill">画像预置 ${records().filter(r=>r.type&&r.type.startsWith('画像预置')).length} 条 · 你新增 ${records().filter(r=>!(r.type||'').startsWith('画像预置')).length} 条</span><button class="primary" id="add">新增模拟记录</button></div><div class="card section ${current==='心理与生活'?'private':''}">${recordList(current)}</div>`;if(current==='心理与生活')html+=`<div class="card section"><h2>支持与生活事项</h2><p>可先记录：我最需要什么支持、愿意告诉谁、工作/学业希望怎样调整、出行需要核实哪些无障碍条件。完整子页尚待原型细化。</p>${jump('医保与资源','查看支持资源')}</div>`;}
 else if(current==='医保与资源'||current==='临床研究'){
 const isTrial=current==='临床研究',items=isTrial?trials:resources,filters=isTrial?['全部','已收藏']:['全部','患者组织','公益组织','渠道 / 工具','医疗机构','已收藏'];
 html+=`<p>${isTrial?'把注册阶段、公开结果与实际可及性分开看。这里是有日期的研究快照，不是可购买药品目录。':'从要解决的事情出发，核对服务范围与入口。名单有代表性，不是医院排名；预约、资格及费用仍需咨询。'}</p><div class="subnav">${filters.map(f=>`<button data-filter="${f}" aria-pressed="${tab===f}">${f}</button>`).join('')}</div><div class="grid">${items.filter(i=>tab==='全部'||tab==='已收藏'&&saved().has(i.id)||i.type===tab).map(i=>card(esc(i.name),`<span class="pill">${esc(i.stage||i.type+' · '+i.region)}</span><p>${esc(i.mechanism||i.service)}</p>${isTrial?`<p>${esc(i.result)}</p>`:''}<p><strong>可及性：</strong>${esc(i.limit)}</p><div class="source">${esc(i.source||i.evidence)} · 核对 2026-10-18${i.date?' · 事件 '+esc(i.date):''}</div><div class="row section"><button data-detail="${i.id}" class="small">详情与咨询准备</button><button data-save="${i.id}" class="small" aria-pressed="${saved().has(i.id)}">${saved().has(i.id)?'取消收藏':'收藏'}</button></div>`)).join('')||'<div class="empty">还没有收藏。返回“全部”，选择需要核实的线索。</div>'}</div>`;
