@@ -5,6 +5,8 @@ const pages=['看板','我的确诊','功能与康复','并发症筛查','疼痛
 const NAV_GROUPS=[['概览',['看板']],['病程与记录',['我的确诊','病情一图秀','检查与指标','功能与康复','并发症筛查','疼痛与疲劳']],['支持与准备',['医保与资源','心理与生活','复诊准备','临床研究']],['',['设置']]];
 const navIcons={'看板':'⌂','我的确诊':'◉','功能与康复':'↗','并发症筛查':'＋','疼痛与疲劳':'≈','检查与指标':'▤','病情一图秀':'⌁','医保与资源':'◇','心理与生活':'♡','复诊准备':'✓','临床研究':'⌕','设置':'⚙'};
 let current='看板', tab='全部', width=35;
+/* 版本号单一来源：顶栏 chip、页脚、导出文件名、关于弹窗都取它，不写第二份 */
+const VERSION='0.1.1';
 
 /* ============================================================
    指标定义（一图秀口径；与 docs/ONE-CHART-CONTRACT.md §2 一致）
@@ -12,17 +14,24 @@ let current='看板', tab='全部', width=35;
    ============================================================ */
 const METRICS=[
 {code:'ck', name:'CK 肌酸激酶',   cat:'检验', unit:'U/L',       dec:0, delta:'pct', color:'#246943', src:'门诊生化报告（模拟）'},
-{code:'fvc',name:'FVC 占预计值',  cat:'呼吸', unit:'%预计',     dec:0, delta:'pct', color:'#2f7f8c', src:'肺功能室报告（模拟）'},
-{code:'w6m',name:'6 分钟步行距离',cat:'功能', unit:'m',         dec:0, delta:'abs', color:'#205b82', src:'康复科 6MWT 记录（模拟）'},
-{code:'grip',name:'握力（右手）', cat:'功能', unit:'kg',        dec:1, delta:'abs', color:'#a4561f', src:'康复科握力计（模拟）'},
-{code:'rss',name:'临床严重度评分',cat:'量表', unit:'分 / 0–5',  dec:1, delta:'abs', color:'#7a3f6d', src:'神经内科门诊评估（模拟）'},
-{code:'fss',name:'疲劳严重度 FSS',cat:'量表', unit:'分 / 9–63', dec:0, delta:'abs', color:'#8a6d1f', src:'本人自评量表（模拟）'}];
+{code:'fvc',name:'FVC 占预计值',  cat:'呼吸', unit:'%预计',     dec:0, delta:'pct', color:'#1c6f8c', src:'肺功能室报告（模拟）'},
+{code:'w6m',name:'6 分钟步行距离',cat:'功能', unit:'m',         dec:0, delta:'abs', color:'#a4561f', src:'康复科 6MWT 记录（模拟）'},
+{code:'grip',name:'握力（右手）', cat:'功能', unit:'kg',        dec:1, delta:'abs', color:'#6a4b9c', src:'康复科握力计（模拟）'},
+{code:'rss',name:'临床严重度评分',cat:'量表', unit:'分 / 0–5',  dec:1, delta:'abs', color:'#8a6d1f', src:'神经内科门诊评估（模拟）'},
+{code:'fss',name:'疲劳严重度 FSS',cat:'量表', unit:'分 / 9–63', dec:0, delta:'abs', color:'#9c4559', src:'本人自评量表（模拟）'}];
 const metricBy=c=>METRICS.find(m=>m.code===c);
 const fmt=(m,v)=>Number(v).toFixed(m.dec);
 const MONTH=30*864e5;
 
 /* ============================================================
-   三组模拟档案（每档案 6 指标 × 1–5 次记录；周航含单点指标用于演示「单点不连线」）
+   三组模拟档案（近 6 个月按 4 周一次密集采样，保证「近 6 月」时间窗里是折线而不是孤点）
+   采样节奏按临床可行性分两档：
+     · 本人自评 / 自测（握力、FSS）：4–5 周一次 → 6 月窗内 6 点
+     · 门诊 / 检查（CK、FVC、6MWD、严重度）：8 周一次 → 6 月窗内 4 点
+     · CK 刻意做出上下波动（286→386→372→398→412）：真实 CK 本身就随活动、感染波动，
+       与功能进展并不平行；这条也用来演示"折线不是单调上升"
+     起点压到 4 月下旬，是为了让「近 6 月」窗口从第一列起就是数据，不在左侧留空白
+   周航保留 1 个单点指标（临床严重度）用于演示「只有 1 次记录，暂不连线」
    ============================================================ */
 const PROFILES=[
 { id:'p1', name:'林晓飞', initial:'林', meta:'FSHD1 · 34 岁 · 进展期',
@@ -33,12 +42,12 @@ const PROFILES=[
     {when:'2024-11',kind:'revised',label:'修订诊断：考虑 FSHD，建议基因检测',hospital:'北京协和医院 神经内科'},
     {when:'2025-03',kind:'confirmed',label:'确诊 FSHD1（基因检测）',hospital:'北京协和医院 神经内科'}],
   family:[{relation:'母亲',status:'未检测（本人暂不打算检测）',note:'父亲疑似新生突变来源待遗传咨询确认'}],
-  series:{ck:[['2024-09-12',318],['2025-03-14',344],['2025-09-20',351],['2026-03-11',386],['2026-09-02',412]],
-          fvc:[['2025-03-14',92],['2025-09-20',89],['2026-03-11',86],['2026-09-02',83]],
-          w6m:[['2025-03-14',520],['2025-09-20',498],['2026-03-11',470],['2026-09-02',455]],
-          grip:[['2025-03-14',26.0],['2025-09-20',24.2],['2026-03-11',22.4],['2026-09-02',21.1]],
-          rss:[['2025-03-14',3.0],['2025-09-20',3.0],['2026-03-11',3.5],['2026-09-02',3.5]],
-          fss:[['2025-09-20',38],['2026-03-11',42],['2026-09-02',45]]},
+  series:{ck:[['2024-09-12',318],['2025-03-14',344],['2025-09-20',351],['2026-01-16',365],['2026-04-25',386],['2026-06-20',372],['2026-08-15',398],['2026-10-10',412]],
+          fvc:[['2025-03-14',92],['2025-09-20',89],['2026-01-16',88],['2026-04-25',86],['2026-06-20',85],['2026-08-15',84],['2026-10-10',83]],
+          w6m:[['2025-03-14',520],['2025-09-20',498],['2026-01-16',489],['2026-04-25',478],['2026-06-20',470],['2026-08-15',462],['2026-10-10',455]],
+          grip:[['2025-09-20',24.2],['2026-01-16',23.6],['2026-04-25',23.2],['2026-05-30',23.0],['2026-07-04',22.6],['2026-08-15',22.2],['2026-09-12',21.6],['2026-10-10',21.1]],
+          rss:[['2025-03-14',3.0],['2025-09-20',3.0],['2026-01-16',3.0],['2026-04-25',3.5],['2026-06-20',3.5],['2026-08-15',3.5],['2026-10-10',3.5]],
+          fss:[['2025-09-20',38],['2026-01-16',39],['2026-04-25',41],['2026-05-30',42],['2026-07-04',42],['2026-08-15',43],['2026-09-12',45],['2026-10-10',46]]},
   emg:'2026-09-02 肌电图：肌源性损害，累及面肩肱分布（候选，待核对）',
   events:[
     {d:'2025-03-14',kind:'gene',  title:'确诊 FSHD1',   status:'done',   src:'北京协和医院 神经内科 · 基因检测报告'},
@@ -63,12 +72,12 @@ const PROFILES=[
     {when:'2026-06',kind:'revised',label:'肌电图提示肌源性损害，转诊基因检测',hospital:'省立医院 神经内科'},
     {when:'2026-08-30',kind:'confirmed',label:'确诊 FSHD1（基因检测）',hospital:'福建医科大学附属第一医院 神经内科'}],
   family:[{relation:'父亲',status:'临床评估疑似携带，未做基因确认',note:'家系检测已预约遗传咨询'}],
-  series:{ck:[['2026-06-20',298],['2026-08-30',322]],
-          fvc:[['2026-08-30',97]],
-          w6m:[['2026-08-30',610],['2026-10-02',595]],
-          grip:[['2026-08-30',38.0],['2026-10-02',36.4]],
-          rss:[['2026-08-30',1.5]],
-          fss:[['2026-09-10',28],['2026-10-01',31]]},
+  series:{ck:[['2026-04-25',285],['2026-06-20',298],['2026-08-15',316],['2026-10-18',330]],
+          fvc:[['2026-06-20',98],['2026-08-15',97],['2026-10-18',95]],
+          w6m:[['2026-06-20',615],['2026-08-15',605],['2026-10-18',595]],
+          grip:[['2026-08-30',38.0],['2026-09-13',37.6],['2026-09-27',36.9],['2026-10-04',36.6],['2026-10-11',36.4],['2026-10-18',36.0]],
+          rss:[['2026-08-15',1.5]],
+          fss:[['2026-08-30',28],['2026-09-06',29],['2026-09-20',30],['2026-10-04',31],['2026-10-11',30],['2026-10-18',31]]},
   emg:'2026-06-20 肌电图：轻度肌源性改变（报告原文待录入）',
   events:[
     {d:'2026-08-30',kind:'gene',  title:'确诊 FSHD1',          status:'done',   src:'福建医科大学附属第一医院 神经内科'},
@@ -92,12 +101,12 @@ const PROFILES=[
   family:[
     {relation:'母亲',status:'已确诊 FSHD1（轮椅）',note:'由本人照护为主'},
     {relation:'女儿（14 岁）',status:'未检测',note:'等她成年后自己决定；遗传咨询材料已备好'}],
-  series:{ck:[['2024-06-11',285],['2025-06-17',301],['2026-06-09',279],['2026-09-15',290]],
-          fvc:[['2024-06-11',96],['2025-06-17',94],['2026-06-09',95],['2026-09-15',93]],
-          w6m:[['2024-06-11',560],['2025-06-17',552],['2026-06-09',545],['2026-09-15',538]],
-          grip:[['2024-06-11',29.0],['2025-06-17',28.2],['2026-06-09',28.0],['2026-09-15',27.3]],
-          rss:[['2019-05-22',1.0],['2024-06-11',1.5],['2025-06-17',1.5],['2026-06-09',2.0]],
-          fss:[['2025-06-17',32],['2026-06-09',34],['2026-09-15',33]]},
+  series:{ck:[['2024-06-11',285],['2025-06-17',301],['2026-01-16',296],['2026-04-25',292],['2026-06-20',288],['2026-08-15',284],['2026-10-10',290]],
+          fvc:[['2024-06-11',96],['2025-06-17',94],['2026-01-16',95],['2026-04-25',95],['2026-06-20',95],['2026-08-15',94],['2026-10-10',93]],
+          w6m:[['2024-06-11',560],['2025-06-17',552],['2026-01-16',550],['2026-04-25',548],['2026-06-20',545],['2026-08-15',541],['2026-10-10',538]],
+          grip:[['2025-06-17',28.2],['2026-01-16',28.3],['2026-04-25',28.1],['2026-05-30',27.9],['2026-07-04',27.8],['2026-08-15',27.6],['2026-09-12',27.4],['2026-10-10',27.3]],
+          rss:[['2019-05-22',1.0],['2024-06-11',1.5],['2025-06-17',1.5],['2026-01-16',1.5],['2026-04-25',1.5],['2026-06-20',2.0],['2026-08-15',2.0],['2026-10-10',2.0]],
+          fss:[['2025-06-17',32],['2026-01-16',32],['2026-04-25',33],['2026-05-30',34],['2026-07-04',33],['2026-08-15',34],['2026-09-12',33],['2026-10-10',33]]},
   emg:'2019-04 肌电图：轻度肌源性改变（历史报告）',
   events:[
     {d:'2019-05-22',kind:'gene',  title:'确诊 FSHD1（家系）', status:'done',   src:'上海华山医院 神经内科'},
@@ -312,7 +321,8 @@ const st=chart();
 const groups=METRIC_CATS.map(c=>({cat:c,codes:METRICS.filter(m=>m.cat===c)})).filter(g=>g.codes.length);
 const ds=[];METRICS.forEach(m=>seriesOf(p,m.code).forEach(x=>ds.push(x[0])));p.events.forEach(e=>ds.push(e.d));
 const ts=ds.map(d=>Date.parse(d)).sort((a,b)=>a-b);
-const rng=`${shortDate(new Date(ts[0]).toISOString().slice(0,10))} – ${shortDate(new Date(ts[ts.length-1]).toISOString().slice(0,10))}`;
+const ym=d=>{const x=new Date(d);return x.getFullYear()+'.'+String(x.getMonth()+1).padStart(2,'0')};
+const rng=`${ym(ts[0])} – ${ym(ts[ts.length-1])}`;
 return `<div class="chips" aria-label="时间范围">${RANGES.map(([k,l])=>`<button class="chip" aria-pressed="${st.range===k}" data-action="range" data-range="${k}">${l}</button>`).join('')}</div>
 <div class="overview">
   <aside class="rail" aria-label="筛选与指标选择">
@@ -335,8 +345,8 @@ return `<div class="chips" aria-label="时间范围">${RANGES.map(([k,l])=>`<but
   <div class="timeline-main">
     <div class="chart-panel">
       <div class="chart-top">
-        <div><h2>已选 ${st.sel.length} 项 · ${RANGE_LABEL[st.range]}</h2></div>
-        <span class="pill">${rng}</span></div>
+        <div><h2 id="chartHead">已选 ${st.sel.length} 项 · ${RANGE_LABEL[st.range]}</h2></div>
+        <span class="pill" id="chartRng">${rng}</span></div>
       <div class="legend" id="chartLegend"></div>
       <div class="chart-wrap" id="chartWrap"></div>
       <div class="pin" id="chartPin" hidden></div>
@@ -354,10 +364,20 @@ function drawChart({animate=false}={}){
   const p=cur(),st=chart();
   const ds=[];METRICS.forEach(m=>seriesOf(p,m.code).forEach(x=>ds.push(x[0])));p.events.forEach(e=>ds.push(e.d));
   const ts=ds.map(d=>Date.parse(d)).sort((a,b)=>a-b);
-  const t1=ts[ts.length-1],tStart=ts[0];
+  const recTs=[];METRICS.forEach(m=>seriesOf(p,m.code).forEach(x=>recTs.push(Date.parse(x[0]))));
+  /* 6m/12m 的窗口描述的是"最近 N 个月的真实记录"，右端锚最新记录；
+     远期计划事件不再把窗口往后拉空（原实现会把 6 月窗拉成 7.3 个月且右侧空两个月）
+     全期保留未来计划事件，便于看到"下一次复查" */
+  const t1=(st.range==='all')?ts[ts.length-1]:Math.max(...recTs),tStart=ts[0];
   const months={'6m':6,'12m':12}[st.range];
   const start=months?new Date(new Date(t1).setMonth(new Date(t1).getMonth()-months)):new Date(tStart);
   const t0=t1-(t1-start.getTime())*st.zoom/100;
+  /* 标题、日期 pill、时间窗 chip 由绘图统一刷新：此前只在整页 render 时更新，切窗后文案会停在旧值 */
+  const headEl=$('#chartHead');
+  if(headEl)headEl.textContent='已选 '+st.sel.length+' 项 · '+(RANGE_LABEL[st.range]||'');
+  const rngEl=$('#chartRng');
+  if(rngEl){const ym=d=>{const x=new Date(d);return x.getFullYear()+'.'+String(x.getMonth()+1).padStart(2,'0')};rngEl.textContent=ym(t0)+' – '+ym(t1)}
+  document.querySelectorAll('[data-action="range"]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.range===st.range)));
   const visibleEvents=st.toggles.events?p.events.map((e,i)=>({e,i,key:eventKey(e),x:xOf(Date.parse(e.d),t0,t1)})).filter(({e})=>inDomain(e.d,t0,t1)).sort((a,b)=>a.x-b.x):[];
   const laneEnds=[];
   visibleEvents.forEach(item=>{const width=Math.min(170,Math.max(54,item.e.title.length*6.2+34));let lane=laneEnds.findIndex(end=>item.x-width/2>=end.x+end.width/2+8);if(lane<0)lane=laneEnds.length;item.lane=lane;item.labelWidth=width;laneEnds[lane]={x:item.x,width};});
@@ -418,7 +438,7 @@ function drawChart({animate=false}={}){
       return `<circle class="pt${active?' active':''}" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${isLast?5.2:4.2}" fill="${s.m.color}" data-action="pin" data-code="${s.m.code}" data-date="${pt[0]}" style="animation-delay:${i*45+si*90}ms"><title>${esc(s.m.name)} ${fmt(s.m,pt[1])} ${esc(s.m.unit)} · ${esc(pt[0])}</title></circle>`;}).join('');
     const lp=lastPos.find(x=>x.s===s),nearRight=lp.x>CX1-44,lx=nearRight?lp.x-8:lp.x+8;
     const label=st.toggles.endLabels
-      ?`<text class="delta-tag" x="${lx.toFixed(1)}" y="${(lp.ly+4).toFixed(1)}" text-anchor="${nearRight?'end':'start'}" fill="${s.m.color}">${fmt(s.m,lp.v)} ${esc(s.m.unit)}</text>`:'';
+      ?`<text class="delta-tag" x="${lx.toFixed(1)}" y="${(lp.ly+4).toFixed(1)}" text-anchor="${nearRight?'end':'start'}" fill="${s.m.color}" paint-order="stroke" stroke="#ffffff" stroke-width="3" stroke-linejoin="round">${fmt(s.m,lp.v)} ${esc(s.m.unit)}</text>`:'';
     return `<g>${path}${points}${label}</g>`;}).join('');
 
   if(animate)st.animationRunId=(st.animationRunId||0)+1;
@@ -448,7 +468,10 @@ function drawChart({animate=false}={}){
     tags.innerHTML=visibleEvents.length?visibleEvents.map(({e,i,key})=>{const status=EV_STATUS[e.status]||EV_STATUS.unknown,active=st.ev===key||st.ev===i;
       return `<button class="ev-tag${active?' active':''}" data-action="ev" data-i="${i}" data-event-key="${esc(key)}" aria-pressed="${active}">
       <b>${esc(e.d)}</b> <span class="ev-tag-title">${esc(e.title)}</span> <span class="tag ${status.color}">${status.label}</span></button>`;}).join('')
-      :'<p class="small-note">当前时间窗内没有事件；扩大时间范围可查看。</p>';}
+      :'<p class="small-note">当前时间窗内没有事件；扩大时间范围可查看。</p>';
+    const outside=p.events.filter(e=>!inDomain(e.d,t0,t1));
+    if(outside.length)tags.innerHTML+='<p class="small-note">窗外 '+outside.length+' 条（不在当前窗口，未画在图上）：'+
+      outside.map(e=>`${esc(e.d)} ${esc(e.title)}${e.status==='planned'?'（计划）':''}`).join('、')+'</p>';}
 
   /* 固定详情 */
   if(st.pin){const m=metricBy(st.pin.code);const hit=(seriesOf(p,st.pin.code)||[]).find(x=>x[0]===st.pin.date);
@@ -582,9 +605,14 @@ if(t.dataset&&t.dataset.pick){const st=chart(),code=t.dataset.pick;
   drawChart();return}
 if(t.dataset&&t.dataset.action==='zoom'){const st=chart();st.zoom=Number(t.value);
   if(t.nextElementSibling)t.nextElementSibling.textContent=st.zoom+'%';drawChart({animate:true});return}
-if(t.id==='aiState'){$('#aiStatus').textContent=t.value;$('#aiNote').textContent=t.value.includes('冲突')?'已有草稿保留。覆盖与发送均被阻止；可取消并返回工作台。':t.value.includes('失败')?'连接失败（模拟）。未发送任何内容，工作台记录保留。':t.value+'；无真实连接或发送。'}});
+if(t.id==='aiState'){const v=t.value;
+  aiDraft=v.includes('草稿');
+  if(v.includes('正在连接'))aiState='connecting';
+  else if(v.includes('失败'))aiState='missing';
+  else aiState=(hasSession&&!$('#pane').hidden)?'open':(hasSession?'closed':'none');
+  paintAI();return}});
 
-function download(){const p=cur();const body=['# 小飞侠 0.1.0 · 复诊准备（模拟 · '+p.name+'）','生成：'+new Date().toISOString(),'仅当前探索稿数据；私密记录未包含。','\n## 本人模拟记录',...records().filter(r=>!r.private).map(r=>`- ${r.date} / ${r.kind}：${r.note}\n  来源：${r.source||'未记录'}；非专业结论`),'\n## 指标摘要（抄录位）',...METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1];return `- ${m.name}：${fmt(m,l[1])} ${m.unit}（${l[0]}）· ${m.src}`}),'\n## 基因确诊档案（抄录位）',`- ${p.gene.type} · D4Z4 ${p.gene.repeats} · ${p.gene.haplo} · ${p.gene.method} · ${p.gene.hospital} ${p.gene.date}`,`- 原文：${p.gene.quote}`,'\n## 公共参考线索（不等于个人病历事实）',...[...resources,...trials].filter(i=>saved().has(i.id)).map(i=>`- ${i.name}：${i.limit}\n  ${i.url}\n  核对2026-10-18；${i.source||i.evidence}`),'\n## 下次可问','- 哪些功能变化值得进一步评估？','- 哪些检查适用于我，计划日期和来源是什么？'].join('\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob([body],{type:'text/markdown;charset=utf-8'}));a.href=url;a.download='小飞侠-复诊准备-模拟.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已生成 Markdown 下载（'+p.name+'）；请查看浏览器下载结果')}
+function download(){const p=cur();const body=['# 小飞侠 '+VERSION+' · 复诊准备（模拟 · '+p.name+'）','生成：'+new Date().toISOString(),'仅当前探索稿数据；私密记录未包含。','\n## 本人模拟记录',...records().filter(r=>!r.private).map(r=>`- ${r.date} / ${r.kind}：${r.note}\n  来源：${r.source||'未记录'}；非专业结论`),'\n## 指标摘要（抄录位）',...METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1];return `- ${m.name}：${fmt(m,l[1])} ${m.unit}（${l[0]}）· ${m.src}`}),'\n## 基因确诊档案（抄录位）',`- ${p.gene.type} · D4Z4 ${p.gene.repeats} · ${p.gene.haplo} · ${p.gene.method} · ${p.gene.hospital} ${p.gene.date}`,`- 原文：${p.gene.quote}`,'\n## 公共参考线索（不等于个人病历事实）',...[...resources,...trials].filter(i=>saved().has(i.id)).map(i=>`- ${i.name}：${i.limit}\n  ${i.url}\n  核对2026-10-18；${i.source||i.evidence}`),'\n## 下次可问','- 哪些功能变化值得进一步评估？','- 哪些检查适用于我，计划日期和来源是什么？'].join('\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob([body],{type:'text/markdown;charset=utf-8'}));a.href=url;a.download='小飞侠-复诊准备-模拟.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已生成 Markdown 下载（'+p.name+'）；请查看浏览器下载结果')}
 /* ---------- 文字大小三档：右上角按钮与设置页共用同一状态 ---------- */
 const TZ=[{k:'',label:'标准',note:'正文 15px'},{k:'large',label:'大',note:'正文 17px'},{k:'xlarge',label:'超大',note:'正文 19.5px'}];
 let tzIdx=0;
@@ -598,11 +626,38 @@ function setTZ(i,announce){
 }
 $('#font').onclick=()=>setTZ(tzIdx+1,true);
 $('#close').onclick=$('#done').onclick=()=>$('#dialog').close();
-$('#about').onclick=()=>modal('小飞侠 0.1.1 · 关于与范围','<p>这是第一批交互探索稿，非完整工作台、非真实患者服务。</p><p>可走查：三组模拟档案切换、确诊档案与误诊时间线、指标卡 3D 翻转看趋势、一图秀多指标（独立归一化 / 时间窗 / 缩放 / 事件泳道 / 重播）、功能/筛查/症状/私密记录、资源与研究收藏（含 Khub 社区与 OpenRare 工具线索）、复诊 Markdown 导出及模拟面板状态稿。</p><p>尚待：报告导入、生产存储、原生 Agent 实机适配、完整子页与异常状态、用户确认。</p>');
+$('#about').onclick=()=>modal('小飞侠 '+VERSION+' · 关于与范围','<p>这是第一批交互探索稿，非完整工作台、非真实患者服务。</p><p>可走查：三组模拟档案切换、确诊档案与误诊时间线、指标卡 3D 翻转看趋势、一图秀多指标（独立归一化 / 时间窗 / 缩放 / 事件泳道 / 重播）、功能/筛查/症状/私密记录、资源与研究收藏（含 Khub 社区与 OpenRare 工具线索）、复诊 Markdown 导出及模拟面板状态稿。</p><p>尚待：报告导入、生产存储、原生 Agent 实机适配、完整子页与异常状态、用户确认。</p>');
 function setWidth(v){width=Math.min(45,Math.max(25,Number(v)));$('#shell').style.setProperty('--pane',width+'%');$('#width').value=width;$('#split').setAttribute('aria-valuenow',width);$('#split').setAttribute('aria-valuetext',width+'%')}
-function aiToggle(show){if(show&&$('#shell').clientWidth<620){$('#aiStatus').textContent='窄屏已收起';toast('工作区较窄，AI 助手面板已收起；扩大工作区后可打开');return}
-  $('#pane').hidden=$('#split').hidden=!show;$('#shell').classList.toggle('with-pane',show);$('#ai').setAttribute('aria-expanded',String(show));$('#ai').setAttribute('aria-label',show?'隐藏 AI 助手':'打开 AI 助手');$('#aiStatus').textContent=show?'宿主状态未验证':'已收起';setWidth(width)}
-$('#ai').onclick=()=>aiToggle($('#pane').hidden);$('#hideAI').onclick=()=>{aiToggle(false);$('#ai').focus()};$('#width').oninput=e=>setWidth(e.target.value);$('#split').onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();setWidth(e.key==='Home'?25:e.key==='End'?45:width+(e.key==='ArrowLeft'?1:-1))}};
+/* 顶栏 AI 会话五态：none / connecting / open / closed / missing（文案与行为对齐 TOP-BAR §5） */
+const AI_LABEL={none:'AI 对话',connecting:'正在连接…',open:'收起 AI 对话',closed:'打开 AI 对话',missing:'AI 对话暂不可用'};
+const AI_HINT={
+  none:'点右侧「AI 对话」调起原生会话（示意）；资料目录与会话均未连接，工作台可独立使用。',
+  connecting:'正在建立会话…此时不会发送任何内容，也不会改动已存的记录。',
+  open:'右侧是 DSH 原生会话（示意）：可拖中间分隔边调整宽度 25%–45%，收起不会结束会话。',
+  closed:'会话保留在后台；点「打开 AI 对话」回到同一会话，输入框草稿不会丢。',
+  missing:'会话服务暂不可用（模拟）；工作台记录、导出与私密设置不受影响。',
+  draft:'右侧是 DSH 原生会话（示意）；已有草稿会保留，覆盖与发送均被阻止。'};
+let aiState='none', hasSession=false, aiDraft=false;
+function paintAI(note){
+  const btn=$('#ai'),hide=$('#aiHide');
+  $('#aiLabel').textContent=AI_LABEL[aiState]||'AI 对话';
+  btn.disabled=(aiState==='connecting'||aiState==='missing');
+  btn.setAttribute('aria-expanded',String(aiState==='open'));
+  btn.setAttribute('aria-label','AI 对话：'+(AI_LABEL[aiState]||''));
+  if(hide)hide.hidden=(aiState!=='open');
+  $('#hint').textContent=note||((aiState==='open'&&aiDraft)?AI_HINT.draft:(AI_HINT[aiState]||AI_HINT.none));
+  $('#aiNote').textContent=aiDraft?'已有草稿保留。覆盖与发送均被阻止；可取消并返回工作台。'
+    :aiState==='missing'?'连接失败（模拟）。未发送任何内容，工作台记录保留。'
+    :(hasSession?'会话状态：'+AI_LABEL[aiState]+'（模拟）；无真实连接或发送。':'未连接；无真实连接或发送。');
+}
+function aiToggle(show,note){
+  if(show&&$('#shell').clientWidth<620){aiState='closed';paintAI('工作区较窄，AI 会话面板已收起；扩大工作区后可打开。');toast('工作区较窄，AI 助手面板已收起；扩大工作区后可打开');return}
+  $('#pane').hidden=$('#split').hidden=!show;$('#shell').classList.toggle('with-pane',show);
+  if(show){hasSession=true;aiState='open'}else if(hasSession){aiState='closed'}else{aiState='none'}
+  paintAI(note);if(show)setWidth(width);
+}
+$('#ai').onclick=()=>aiToggle($('#pane').hidden);$('#hideAI').onclick=()=>{aiToggle(false);$('#ai').focus()};$('#aiHide').onclick=()=>{aiToggle(false);$('#ai').focus()};$('#width').oninput=e=>setWidth(e.target.value);$('#split').onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();setWidth(e.key==='Home'?25:e.key==='End'?45:width+(e.key==='ArrowLeft'?1:-1))}};
 $('#split').onpointerdown=e=>{e.target.setPointerCapture(e.pointerId);e.target.onpointermove=ev=>{const box=$('#shell').getBoundingClientRect();setWidth((box.right-ev.clientX)/box.width*100)};e.target.onpointerup=()=>e.target.onpointermove=null};
-const paneResize=new ResizeObserver(entries=>{const w=entries[0].contentRect.width;document.querySelector('header').classList.toggle('frame-compact',w<=760);if(w<620){$('#nav').classList.add('nav-compact');if(!$('#pane').hidden){aiToggle(false);$('#aiStatus').textContent='窄屏已收起'}}else $('#nav').classList.remove('nav-compact')});paneResize.observe($('#shell'));
-setTZ(0,false);applyProfileHeader();render();
+const paneResize=new ResizeObserver(entries=>{const w=entries[0].contentRect.width;document.querySelector('header').classList.toggle('frame-compact',w<=760);if(w<620){$('#nav').classList.add('nav-compact');if(!$('#pane').hidden)aiToggle(false,'工作区较窄，AI 会话面板已收起；扩大工作区后可打开。')}else $('#nav').classList.remove('nav-compact')});paneResize.observe($('#shell'));
+$('#verChip').textContent='v'+VERSION;const fv=$('#footVer');if(fv)fv.textContent=VERSION;document.title='小飞侠 · FSHD 工作台 '+VERSION;
+setTZ(0,false);applyProfileHeader();paintAI();render();

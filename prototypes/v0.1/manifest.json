@@ -1,13 +1,13 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "stage": "partial-interactive-exploration",
-  "checked_on": "2026-10-19",
+  "checked_on": "2026-10-20",
   "sha256": {
-    "index.html": "0e633927b8c657d61bbaed118dddcd4398a62b42f1d2c25a7a73089f876671bd",
-    "style.css": "40ca8ebd520893626079febe339850c75c583b08926ebf74cbf08a128c1c4da3",
-    "app.js": "cd68118d6d81f122ee1d7cfd0f2ea42352a4b9a0a3807c8c073eb93d402e5a5e"
+    "index.html": "04f360b874d6907d8bd0b9648b334f304c4d62114ffe8149a9b183dbec4579b5",
+    "style.css": "3044edca3370e39e1c1571a281c3f043543ab8d0deefb1332ca5b9dcc92fc8eb",
+    "app.js": "ca440ec901e4a732b41c3bbe31e11cc5faaafbab743927107abe7716235290ca"
   },
-  "bundle_sha256": "9f4e7cc4d7b41cc90bac61038c9d3ea8334de4b9d0f07d84bcd75d6b71b25344",
+  "bundle_sha256": "b7da12fd162e63c4ee4c91fd7a914836030b455741f03b242620e4e849328d65",
   "bundle_hash_rule": "SHA256 of index.html/style.css/app.js in that order: filename:sha256 + LF",
   "browser_preview": "not_verified_browser_local_file_url_policy_blocked",
   "user_confirmation": "pending",

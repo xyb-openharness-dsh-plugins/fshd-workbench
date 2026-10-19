@@ -9,6 +9,7 @@
 | P01 | 第一批可点击HTML | prototypes/v0.1；PROTOTYPE-REVIEW | 已编写，语法通过，浏览器预览被策略阻止 |
 | P02 | 完整一级/二级模块和关键状态 | PARITY.csv | 未完成 |
 | P03 | 完整预览及用户版本/范围确认 | PROTOTYPE-REVIEW | 待完成，未获确认 |
+| P04 | 一图秀动效/事件提示词落地 | starter `prompts/TIMELINE-MOTION-AND-EVENTS.md`；`docs/ONE-CHART-SPEC.md` | 源码增强完成，浏览器实测与 C1–C12 待验 |
 | D01 | 数据合同/变化走查 | SCHEMA补充草案 | 未冻结、无库无迁移 |
 | T01 | 生产接入/完整业务开发 | P03/D01之后 | 未开始 |
 | T02 | Desktop打包/安装/实机验收 | 目标版本待核实 | 未开始 |

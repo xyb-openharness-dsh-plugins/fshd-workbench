@@ -38,20 +38,32 @@ h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:.01em}
 p{margin:0}
 ul{margin:0;padding-left:18px}
 
-/* 顶栏 */
-header{position:sticky;top:0;background:#ffffffef;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:8px 20px;display:flex;justify-content:space-between;gap:12px;align-items:center;z-index:2;flex-wrap:wrap}
+/* 顶栏：三段式（左 品牌+版本 / 中 一句说明 / 右 主操作）
+   结构与层级对齐 prompts/DSH-WORKBENCH-TOP-BAR.md；色号按小飞侠品牌（绿）换，不照抄小粉宝 */
+header{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:6px 12px;padding-inline-start:var(--dsh-frame-leading-clearance,12px);
+  background:#f4faf6;border-bottom:1px solid #e3efe7}
 .brand,.tools,.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.brand img{width:78px;height:42px;object-fit:contain}
-.brand strong{font-size:calc(17px * var(--tz))}
+.brand{flex:0 0 auto;gap:7px}
+.brand img{width:30px;height:30px;object-fit:contain;border-radius:8px;background:#fff;flex:none}
+.brand strong{font-size:calc(12.5px * var(--tz));font-weight:700;letter-spacing:0}
+/* 版本 chip 走中性灰：它是元信息，不跟随品牌主色，也不放大（不抢空间） */
+.ver{display:inline-block;padding:1px 8px;border-radius:999px;background:#e9efeb;color:#68786f;font-size:11px;font-weight:500;white-space:nowrap}
+.hint{flex:1 1 200px;min-width:200px;font-size:11.5px;line-height:1.45;color:var(--muted)}
+.tools{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;flex-wrap:nowrap}
+button.ghost{background:transparent;border:1px solid #cfded5;color:var(--ink);border-radius:999px;padding:5px 11px;min-height:32px}
+button.ghost:hover{background:#e6f2ea}
+button.ghost.icon{min-width:32px;padding:0 9px;font-size:calc(16px * var(--tz));line-height:1}
 .pill{display:inline-block;padding:2px 9px;background:var(--soft);border-radius:20px;color:var(--green);font-size:calc(11.5px * var(--tz));white-space:nowrap}
 .pill.demo{background:var(--blue);color:var(--blue-deep)}
 .muted,small{color:var(--muted);font-size:.85em}
-.notice{background:#fff4dd;color:#655124;font-size:calc(13px * var(--tz));padding:7px 20px;border-bottom:1px solid #e9d9b5}
-/* 档案切换 */
-.profile{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:3px 10px;min-height:38px;max-width:230px}
+.notice{background:#fff4dd;color:#655124;font-size:calc(13px * var(--tz));padding:5px 12px;padding-inline-start:var(--dsh-frame-leading-clearance,12px);border-bottom:1px solid #e9d9b5;line-height:1.5}
+/* 档案切换：顶栏里唯一的"次要身份块"，做成幽灵样式，让 AI 按钮是唯一强色块 */
+.profile{display:flex;align-items:center;gap:7px;border:1px solid #cfded5;background:transparent;border-radius:12px;padding:2px 10px 2px 3px;min-height:34px;max-width:230px;text-align:left}
 .profile .avatar{width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--green);font-weight:700;display:grid;place-items:center;flex:none;font-size:calc(13px * var(--tz))}
-.profile b{display:block;font-size:calc(13px * var(--tz));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.profile small{display:block;font-size:calc(11.5px * var(--tz))}
+.profile .pf-text{min-width:0;display:block}
+.profile b{display:block;font-size:calc(12px * var(--tz));line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile small{display:block;font-size:calc(10.5px * var(--tz));line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .profile .caret{color:var(--muted);font-size:calc(12px * var(--tz));flex:none}
 
 /* 布局 */
@@ -401,7 +413,6 @@ footer{position:sticky;bottom:0;background:#ffffffef;border-top:1px solid var(--
 .ai-button{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:7px 15px;background:var(--green);border-color:var(--green);color:#fff;border-radius:10px;font-weight:650;white-space:nowrap}
 .ai-button:hover{background:#1c5635;border-color:#1c5635;color:#fff}
 .ai-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.ai-status{font-size:calc(12px * var(--tz));color:var(--muted);white-space:nowrap}
 header.frame-compact .tools{flex-basis:100%;justify-content:flex-end}
 .nav-icon{display:none}
 @container workbench (max-width:900px){
@@ -419,7 +430,7 @@ header.frame-compact .tools{flex-basis:100%;justify-content:flex-end}
  nav .nav-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
  nav .nav-icon{display:inline;line-height:1}
 }
-@media(max-width:620px){header .tools{gap:6px}.ai-button{padding:6px 10px}}
+@media(max-width:620px){header .tools{gap:5px}.ai-button{padding:6px 10px}.hint{flex-basis:100%;order:3}.profile small{display:none}}
 .workspace nav.nav-compact{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:6px;gap:4px}
 .workspace nav.nav-compact .nav-group{display:contents}
 .workspace nav.nav-compact .nav-group-label,.workspace nav.nav-compact .nav-foot{display:none}
