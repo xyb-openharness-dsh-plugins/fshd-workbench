@@ -1,6 +1,6 @@
 {
   "name": "@xyb-community/fshd-workbench",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "本机优先的FSHD基因确诊档案、功能与辅助器具、并发症筛查、疼痛疲劳与生活就业、遗传家庭沟通工作台",
   "private": true,
   "type": "module",
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xyb-community/fshd-workbench"
+    "url": "https://github.com/xyb-openharness-dsh-plugins/fshd-workbench"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.1 <5",
@@ -47,5 +47,5 @@
   "engines": {
     "node": ">=22"
   },
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

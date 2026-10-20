@@ -29,7 +29,7 @@ npm pack
 
 本地安装入口以当前 Desktop/CLI 帮助为准。安装后按 [docs/06-VALIDATION-AND-RELEASE.md](docs/06-VALIDATION-AND-RELEASE.md) 与官方自测完成真实 UI 验收，并填写 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。静态检查不代表已加载。
 
-Logo 来源与使用限制见 assets/README.md。许可证、作者、仓库/发布策略由本项目维护者确认后填写；模板默认为 private/UNLICENSED。
+Logo 来源与使用限制见 assets/README.md。许可证采用 MIT（见 `LICENSE` 文件）；仓库为 `https://github.com/xyb-openharness-dsh-plugins/fshd-workbench`，`private: true` 保留不公开发布。
 
 感谢小x宝社区、DataElement 社区，以及 sam / hhx / 繁华的 ❤️ 贡献。
 
