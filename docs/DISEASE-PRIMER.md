@@ -91,7 +91,7 @@ FSHD 没有肿瘤那样的病期与线序，下面按照护类别分组；只列
 **未写**：本项目没有自采 FSHD 在研登记的数量与阶段分布，所以不写数量统计；监管批件（NMPA / FDA 批准）、分类体系更新、指南结构变化也没有核实到，整类不写。
 losmapimod 的 III 期未达终点与 emugrobart 停止 FSHD 开发属于公司研发决定与试验结果，不在趋势段五类白名单内，只留在 `docs/research/FSHD-THERAPIES.md`。
 
-**来源**：AAN / AANEM · Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy · 2015 · 未取得原件 · 页码待核 ｜ GeneReviews · Facioscapulohumeral Muscular Dystrophy · 更新 2025-07-10 · 未取得完整正文 · 页码待核 ｜ 开发者公告 / ClinicalTrials.gov · del-brax、EPI-321、apitegromab 的登记与公告 · 核查日 2026-10-18 · 未取得原件（据 `docs/research/FSHD-THERAPIES.md` 转引）
+**来源**：AAN / AANEM · Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy · 2015 · 未取得原件 · 页码待核 ｜ GeneReviews · Facioscapulohumeral Muscular Dystrophy · 更新 2025-07-10 · 未取得完整正文 · 页码待核 ｜ 开发者公告 / ClinicalTrials.gov · del-brax、EPI-321、apitegromab 的登记与公告 · 核查日 2026-10-18 · 原件已取得（自采快照；第三方原件未存档，转引自 `docs/research/FSHD-THERAPIES.md`）
 
 ## 5 落地清单
 

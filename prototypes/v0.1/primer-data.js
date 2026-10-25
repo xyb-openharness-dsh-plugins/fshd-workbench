@@ -111,7 +111,7 @@ window.DISEASE_PRIMER = {
       sources: [
         { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核' },
         { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核' },
-        { org: '开发者公告 / ClinicalTrials.gov', doc: 'del-brax、EPI-321、apitegromab 的登记与公告', version: '核查日 2026-10-18', original: false, page: '不以页码计', note: '据 docs/research/FSHD-THERAPIES.md 转引，未存档原件' }
+        { org: '开发者公告 / ClinicalTrials.gov', doc: 'del-brax、EPI-321、apitegromab 的登记与公告', version: '核查日 2026-10-18', original: true, page: '不以页码计', note: '自采快照；第三方原件未存档，转引自 docs/research/FSHD-THERAPIES.md' }
       ]
     }
   ]

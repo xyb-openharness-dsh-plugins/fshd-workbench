@@ -9,7 +9,7 @@
 > 四段固定：定义 → 医学资料规范和指南情况 → 目前治疗全景概要 → 发展趋势。整体属**解释层**（第 ② 层）：
 > 只整理公开信息，不判断你的病情。工作台顶栏的「?」看同一份内容的整页版。
 > FSHD 是罕见神经肌肉病，不是肿瘤：这里引用 AAN / AANEM 指南与 GeneReviews，不套肿瘤指南。
-> 原件状态照实写：两份文件都没有存档原件，GeneReviews 直接页出现验证码，只提取到摘要。
+> 原件状态照实写：两份文件都没有存档原件，GeneReviews 直接页出现验证码，只提取到摘要；趋势段的登记与公告是自采快照，第三方原件未存档。
 
 ### 定义
 
@@ -52,7 +52,7 @@ FSHD 没有肿瘤那样的病期与线序，下面按照护类别分组。只列
 - 2025-07-10：GeneReviews「Facioscapulohumeral Muscular Dystrophy」条目更新（本项目核查记录，仅摘要）。
 - 截至 2026-10-18 的公开登记与开发者公告：del-brax 处于 III 期（FORTITUDE-3，NCT07038200；2026-06-11 公告）；EPI-321 处于 I/II 期（NCT06907875；2026-10-05 报告首 6 例六个月数据）；apitegromab 处于 II 期（NCT07435129；2026-09-02 公告已开始给药）。
 
-**来源**：AAN / AANEM · Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy · 2015 · 未取得原件 · 页码待核 ｜ GeneReviews · Facioscapulohumeral Muscular Dystrophy · 更新 2025-07-10 · 未取得完整正文 · 页码待核 ｜ 开发者公告 / ClinicalTrials.gov · del-brax、EPI-321、apitegromab 的登记与公告 · 核查日 2026-10-18 · 未取得原件（据 `docs/research/FSHD-THERAPIES.md` 转引）
+**来源**：AAN / AANEM · Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy · 2015 · 未取得原件 · 页码待核 ｜ GeneReviews · Facioscapulohumeral Muscular Dystrophy · 更新 2025-07-10 · 未取得完整正文 · 页码待核 ｜ 开发者公告 / ClinicalTrials.gov · del-brax、EPI-321、apitegromab 的登记与公告 · 核查日 2026-10-18 · 原件已取得（自采快照；第三方原件未存档，转引自 `docs/research/FSHD-THERAPIES.md`）
 
 ## 开发顺序
 
