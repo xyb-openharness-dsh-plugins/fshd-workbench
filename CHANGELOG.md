@@ -2,6 +2,18 @@
 
 版本唯一来源为仓库根 `VERSION`；`package.json` / `manifest.json` / 原型 `app.js` 中的版本号须与之对齐。
 
+## 0.1.2 (2026-10-27)
+
+- **36 号 v2 补齐（指南可点+状态卡）**：`probe-disease-primer.mjs` 实测 9/9 PASS；浮窗四段顺序 definition → evidence → landscape → trend。`primer.js` / `primer.css` 与 starter 最新 `assets/patterns/disease-primer.js/.css` 复核为 SAME（已支持指南链接），未覆盖。
+- **指南链接（§2.5 硬约束）**：evidence 表「原件」列 3 行全部结构化，不再有纯文字。
+  - AAN / AANEM 2015 指南 → AAN 官方指南页（`GuidelineDetail/701`，OK）；
+  - 国家卫生健康委《罕见病诊疗指南（2019年版）》第 98 章「进行性肌营养不良」→ 卫健委官网通知页（OK；附件 PDF 784 页已下载核对，该章列出 FSHD1 / FSHD2 及 Southern blot / OGM 检测口径）；
+  - GeneReviews → NCBI Bookshelf 直连返回人机验证（CHALLENGE），无可验活替代页，标 `nolink: true` + `note`，不编 URL。
+- **链接验活**：10 条链接引用（5 个唯一 URL：AAN 官方页、卫健委通知页、3 个 ClinicalTrials.gov 登记页）逐条用 `verify-links.mjs` 实测 OK；5 处 GeneReviews `nolink`（均有 note）。此前写入的 Neurology 原文页（403）与 NCBI Bookshelf（CHALLENGE）不计可达，已替换 / 降级。
+- **检查器**：新增 `scripts/check-primer-links.mjs`（L1–L6，15 项断言全过），并入 `npm run check`。
+- **版本号**：`VERSION` / `package.json` / `prototypes/v0.1/manifest.json` / 原型 `app.js` / `index.html` 同步至 0.1.2；manifest 快照哈希按当前 `index.html` / `style.css` / `app.js` 重算。
+- **状态卡（§2.6）**：本仓看板为任务入口卡，无 D+N 治疗锚点模型（FSHD 无移植 / 诱导类 Day 0），本版未新增状态卡；顶栏「?」入口已具备。
+
 ## 0.1.1 (2026-10-21)
 
 - **品牌落地**：弃用占位名「小翼宝 ScapPal」，生产入口（`lib/client.js` 的 `metadata.title` 与 DSH 注册 `title`）统一为「小飞侠 FSHD 工作台」。

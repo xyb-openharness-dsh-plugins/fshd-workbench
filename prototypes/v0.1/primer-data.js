@@ -1,16 +1,21 @@
-/* 小飞侠 FSHD · 疾病概要数据（36 号）
+/* 小飞侠 FSHD · 疾病概要数据（36 号 v2）
  * 口径：docs/DISEASE-PRIMER.md；规范：starter docs/36-DISEASE-PRIMER.md。
- * FSHD 是罕见神经肌肉病，不是肿瘤：这里引用的是神经肌肉病领域的指南与专家综述，
- * 不套 CSCO / NCCN / AJCC 等肿瘤文件。全部内容属第 ② 层（解释），不做判断。
+ * FSHD 是罕见神经肌肉病，不是肿瘤：这里引用神经肌肉病领域的指南与专家综述，不套 CSCO / NCCN / AJCC 等肿瘤文件。
+ * 全部内容属第 ② 层（解释）：只写定义、文件、指南列举过的手段、已发生的变化，不做判断。
  *
- * 原件状态：AAN/AANEM 2015 指南只有公开链接、未存档原件；GeneReviews 直接页出现验证码，
- * 只提取到摘要，未假称读过全文。两者页码一律「页码待核」。
+ * 链接（§2.5 硬约束，2026-10-27 用 verify-links.mjs 逐条验活）：
+ *  - AAN / AANEM 2015 指南：secondaryUrl 指向 AAN 官方指南页（GuidelineDetail/701，OK）；
+ *    Neurology 原文页与 PMC / PubMed 直连均返回 403 / 人机验证，不作为可达链接写入；
+ *  - GeneReviews：NCBI Bookshelf 直连返回人机验证（CHALLENGE），无可验活的替代页 → nolink + note，不编 URL；
+ *  - 国内口径：国家卫生健康委《罕见病诊疗指南（2019年版）》第 98 章「进行性肌营养不良」
+ *    明确列出面肩肱型肌营养不良 1 型 / 2 型（官网 PDF 已下载核对），url 指向官网通知页（OK）；
+ *  - 自采快照（在研登记）用 url 指向 ClinicalTrials.gov 登记页（3 条均 OK）。
  */
 window.DISEASE_PRIMER = {
   brand: '小飞侠 FSHD',
   name: '面肩肱型肌营养不良症',
   en: 'Facioscapulohumeral Muscular Dystrophy',
-  updated: '2026-10-25',
+  updated: '2026-10-27',
   sections: [
     {
       id: 'definition',
@@ -24,21 +29,21 @@ window.DISEASE_PRIMER = {
         '中文全称「面肩肱型肌营养不良症」，英文 facioscapulohumeral muscular dystrophy（FSHD）；这两个名字在本台指同一件事，不混用旧称。'
       ],
       sources: [
-        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', note: '公开指南链接（PMC4520817），本项目未存档原件' },
-        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', note: '直接页出现验证码，只提取到摘要，未读取完整正文' }
+        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', secondaryUrl: 'https://www.aan.com/Guidelines/home/GuidelineDetail/701', note: 'AAN 官方指南页（2026-10-27 验活 OK）；Neurology 原文页 403，本项目未存档原件' },
+        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', nolink: true, note: 'NCBI Bookshelf 直连返回人机验证（CHALLENGE，2026-10-27 实测），无可验活替代页；本项目仅据摘要提取' }
       ]
     },
     {
       id: 'evidence',
       title: '医学资料规范和指南情况',
       intro: '这台工作台里出现的「怎么确诊、该防哪些并发症、哪些照护类别可以讨论」，都应能追到下面某一份文件。'
-        + 'FSHD 属罕见病，本项目没有找到可核对的中国 FSHD 诊疗指南全文，表里照实写。',
+        + 'FSHD 属罕见病：本项目未检索到 FSHD 单病种的中国指南 / 共识；国内口径以国家卫生健康委《罕见病诊疗指南（2019年版）》第 98 章「进行性肌营养不良」为准（该章列出 FSHD1 / FSHD2），表里照实写。',
       table: {
         head: ['机构', '文件', '版本 / 年份', '原件', '本台的用途'],
         rows: [
-          ['AAN / AANEM', 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', '2015', '未取得原件（公开指南链接，未存档）', '诊断路径与照护类别（康复、器具、疼痛、呼吸、眼与听力）'],
-          ['GeneReviews', 'Facioscapulohumeral Muscular Dystrophy', '更新 2025-07-10', '未取得完整正文（直接页验证码，据摘要提取）', '分子机制、FSHD1 / FSHD2 区分、遗传咨询边界'],
-          ['—', '中国 FSHD 诊疗指南 / 共识', '未检索到可核对版本', '未取得原件', '国内口径暂缺；不用其他病种指南代填']
+          ['AAN / AANEM', 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', '2015', { text: '未取得原件（AAN 官方指南页，未存档）', url: 'https://www.aan.com/Guidelines/home/GuidelineDetail/701' }, '诊断路径与照护类别（康复、器具、疼痛、呼吸、眼与听力）'],
+          ['GeneReviews', 'Facioscapulohumeral Muscular Dystrophy', '更新 2025-07-10', { text: '未取得完整正文（NCBI 直连人机验证，据摘要提取）', nolink: true, note: 'NCBI Bookshelf 直连返回人机验证（CHALLENGE，2026-10-27 实测）；无可验活替代页，不编 URL' }, '分子机制、FSHD1 / FSHD2 区分、遗传咨询边界'],
+          ['国家卫生健康委', '罕见病诊疗指南（2019年版）· 98 进行性肌营养不良', '2019', { text: '官网 PDF 可下载（784 页，未存档）', url: 'https://www.nhc.gov.cn/yzygj/c100068/201902/073540e8f83b4a54a28684d23e2ae2f5.shtml' }, '国内罕见病诊疗口径；该章列出 FSHD1 / FSHD2 的致病机制与检测方法']
         ]
       },
       points: [
@@ -47,8 +52,9 @@ window.DISEASE_PRIMER = {
         '2015 年指南是历史文件，本台不用它替代 2026 年的药物状态核验；新药与在研项目另按登记与开发者公告记录。'
       ],
       sources: [
-        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', note: '公开指南链接，未存档原件' },
-        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', note: '仅摘要，未读取完整正文' }
+        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', secondaryUrl: 'https://www.aan.com/Guidelines/home/GuidelineDetail/701', note: 'AAN 官方指南页（验活 OK），未存档原件' },
+        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', nolink: true, note: 'NCBI 直连人机验证（CHALLENGE），仅据摘要提取' },
+        { org: '国家卫生健康委', doc: '罕见病诊疗指南（2019年版）· 98 进行性肌营养不良', version: '2019', original: true, page: 'P623', url: 'https://www.nhc.gov.cn/yzygj/c100068/201902/073540e8f83b4a54a28684d23e2ae2f5.shtml', note: '官网通知页（验活 OK）；附件 PDF 已下载核对第 98 章含 FSHD1 / FSHD2，本项目未存档' }
       ]
     },
     {
@@ -94,8 +100,8 @@ window.DISEASE_PRIMER = {
         '以上是文献与指南里列出的手段，按病期与线序排列，不代表任何一项适合你。选哪一个，这一句需要问你的医生。'
       ],
       sources: [
-        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', note: '公开指南链接，未存档原件' },
-        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', note: '仅摘要，未读取完整正文' }
+        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', secondaryUrl: 'https://www.aan.com/Guidelines/home/GuidelineDetail/701', note: 'AAN 官方指南页（验活 OK），未存档原件' },
+        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', nolink: true, note: 'NCBI 直连人机验证（CHALLENGE），仅据摘要提取' }
       ]
     },
     {
@@ -109,9 +115,11 @@ window.DISEASE_PRIMER = {
         '截至 2026-10-18 的公开登记与开发者公告：del-brax 处于 III 期（FORTITUDE-3，NCT07038200；2026-06-11 公告）；EPI-321 处于 I/II 期（NCT06907875；2026-10-05 报告首 6 例六个月数据）；apitegromab 处于 II 期（NCT07435129；2026-09-02 公告已开始给药）。'
       ],
       sources: [
-        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核' },
-        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核' },
-        { org: '开发者公告 / ClinicalTrials.gov', doc: 'del-brax、EPI-321、apitegromab 的登记与公告', version: '核查日 2026-10-18', original: true, page: '不以页码计', note: '自采快照；第三方原件未存档，转引自 docs/research/FSHD-THERAPIES.md' }
+        { org: 'AAN / AANEM', doc: 'Evidence-based guideline: Diagnosis and management of facioscapulohumeral muscular dystrophy', version: '2015', original: false, page: '页码待核', secondaryUrl: 'https://www.aan.com/Guidelines/home/GuidelineDetail/701' },
+        { org: 'GeneReviews', doc: 'Facioscapulohumeral Muscular Dystrophy', version: '更新 2025-07-10', original: false, page: '页码待核', nolink: true, note: 'NCBI 直连人机验证（CHALLENGE），仅据摘要提取' },
+        { org: 'ClinicalTrials.gov', doc: 'del-brax (AOC 1020) · FORTITUDE-3', version: 'NCT07038200', original: true, page: '不以页码计', url: 'https://clinicaltrials.gov/study/NCT07038200', note: '自采快照；第三方原件未存档，转引自 docs/research/FSHD-THERAPIES.md' },
+        { org: 'ClinicalTrials.gov', doc: 'EPI-321', version: 'NCT06907875', original: true, page: '不以页码计', url: 'https://clinicaltrials.gov/study/NCT06907875', note: '自采快照；第三方原件未存档' },
+        { org: 'ClinicalTrials.gov', doc: 'apitegromab (SRK-015) · FORGE', version: 'NCT07435129', original: true, page: '不以页码计', url: 'https://clinicaltrials.gov/study/NCT07435129', note: '自采快照；第三方原件未存档' }
       ]
     }
   ]

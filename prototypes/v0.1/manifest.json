@@ -1,13 +1,13 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.2",
   "stage": "partial-interactive-exploration",
-  "checked_on": "2026-10-20",
+  "checked_on": "2026-10-27",
   "sha256": {
-    "index.html": "04f360b874d6907d8bd0b9648b334f304c4d62114ffe8149a9b183dbec4579b5",
+    "index.html": "fa619080d2e606cc0f33b785081169695fc226477adba05fd89d8a09fdfb3363",
     "style.css": "3044edca3370e39e1c1571a281c3f043543ab8d0deefb1332ca5b9dcc92fc8eb",
-    "app.js": "ca440ec901e4a732b41c3bbe31e11cc5faaafbab743927107abe7716235290ca"
+    "app.js": "7b1a50f939edf236ea9d04eaae6a641ab04c26cdfe315ad9a32670f6091c4d9c"
   },
-  "bundle_sha256": "b7da12fd162e63c4ee4c91fd7a914836030b455741f03b242620e4e849328d65",
+  "bundle_sha256": "902dca5b602220dc13900768c4dc03a1ef6e2ef819040b709330124cccda30e9",
   "bundle_hash_rule": "SHA256 of index.html/style.css/app.js in that order: filename:sha256 + LF",
   "browser_preview": "not_verified_browser_local_file_url_policy_blocked",
   "user_confirmation": "pending",
