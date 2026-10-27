@@ -1,0 +1,15 @@
+{
+  "version": "0.1.3",
+  "stage": "partial-interactive-exploration",
+  "checked_on": "2026-10-27",
+  "sha256": {
+    "index.html": "fa619080d2e606cc0f33b785081169695fc226477adba05fd89d8a09fdfb3363",
+    "style.css": "58cc0edfca35077a6586db583c0e0f7c9e6f154c1e403d9c8deeba682c846611",
+    "app.js": "cacc4e450aac597a418670988b1f00a19b2b86758aca7aac71bed7602e60dcd9"
+  },
+  "bundle_sha256": "93a78ab2880f899f3217e5cd22fc9af643c3c69bca95ee0767cd9e9745d762a5",
+  "bundle_hash_rule": "SHA256 of index.html/style.css/app.js in that order: filename:sha256 + LF",
+  "browser_preview": "not_verified_browser_local_file_url_policy_blocked",
+  "user_confirmation": "pending",
+  "production": "not_implemented"
+}
