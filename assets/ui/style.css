@@ -432,6 +432,11 @@ footer{position:sticky;bottom:0;background:#ffffffef;border-top:1px solid var(--
 .ai-button{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:7px 15px;background:var(--green);border-color:var(--green);color:#fff;border-radius:10px;font-weight:650;white-space:nowrap}
 .ai-button:hover{background:#1c5635;border-color:#1c5635;color:#fff}
 .ai-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* 嵌入 Desktop customFrame：隐藏 iframe 内自带模拟面板 + 顶栏 AI 按钮 + brand，避免与宿主原生会话双面板（34 号 §2b） */
+.embedded .brand{display:none}
+.embedded #ai,.embedded #aiHide{display:none}
+.embedded #pane,.embedded #split{display:none!important}
+.agent-draft-btn{margin-left:8px}
 header.frame-compact .tools{flex-basis:100%;justify-content:flex-end}
 .nav-icon{display:none}
 @container workbench (max-width:900px){

@@ -6,7 +6,7 @@ const NAV_GROUPS=[['概览',['看板']],['病程与记录',['我的确诊','病�
 const navIcons={'看板':'⌂','我的确诊':'◉','功能与康复':'↗','并发症筛查':'＋','疼痛与疲劳':'≈','检查与指标':'▤','病情一图秀':'⌁','医保与资源':'◇','心理与生活':'♡','复诊准备':'✓','临床研究':'⌕','设置':'⚙'};
 let current='看板', tab='全部', width=35;
 /* 版本号单一来源：顶栏 chip、页脚、导出文件名、关于弹窗都取它，不写第二份 */
-const VERSION='0.1.3';
+const VERSION='0.1.4';
 
 /* ============================================================
    指标定义（一图秀口径；与 docs/ONE-CHART-CONTRACT.md §2 一致）
@@ -565,6 +565,7 @@ html+=`<p>${isTrial?'把注册阶段、公开结果与实际可及性分开看�
 else if(current==='复诊准备')html+=`<p>汇总「${esc(p.name)}」本轮非私密模拟记录与收藏。公共研究线索与本人观察分区输出，支持下载真实 Markdown 文件。</p><div class="card"><h2>本次摘要</h2>${records().filter(r=>!r.private).map(r=>`<div class="record"><strong>${esc(r.kind)} · ${esc(r.date)}</strong><p>${esc(r.note)}</p><small>用户模拟记录，非专业结论；来源：${esc(r.source||'未记录')}</small></div>`).join('')||'<div class="empty">还没有可汇总的记录。先记录一项生活任务变化。</div>'}<h3>指标摘要（抄录位）</h3><div class="table-wrap"><table><tr><th>指标</th><th>末值</th><th>日期</th><th>全期范围</th><th>来源</th></tr>${METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1],v=a.map(x=>x[1]);return `<tr><td>${esc(m.name)}</td><td class="num">${fmt(m,l[1])} ${esc(m.unit)}</td><td>${esc(l[0])}</td><td class="num">${fmt(m,Math.min(...v))}–${fmt(m,Math.max(...v))}</td><td>${esc(m.src)}</td></tr>`}).join('')}</table></div><p>已收藏 ${saved().size} 条公共线索；不代表已核实可获得服务。</p><button id="export" class="primary">下载复诊准备.md</button></div>`;
 else if(current==='设置')html+=`<div class="stack">${card('本机资料目录','<p>未连接。此 HTML 原型不读取或持久化患者资料。</p><button disabled>选择目录（待 Desktop 接入）</button>')}${card('报告解析','<p>未配置、未发送。真实解析须另行显示上传路径并按文件授权。</p><button disabled>解析报告（未接通）</button>')}${card('模拟档案','<p>'+PROFILES.map(x=>esc(x.name)+'（'+esc(x.meta)+'）').join('<br>')+'</p><p class="note">三组画像用于走查不同病程阶段；右上角随时切换。记录与收藏按档案隔离。</p>')}${card('文字大小','<div class="tz-opts">'+TZ.map((t,i)=>`<label class="tz-opt"><input type="radio" name="tz" data-tz="${i}" ${i===tzIdx?'checked':''}><span>${t.label}</span><small>${t.note}</small></label>`).join('')+'</div><p class="note">正文、按钮与卡片文字按档位整体缩放；图表内的坐标与标签文字刻意跟随页面缩放而非档位，保持末点标签的避让几何与不越界。右上角「字」按钮与这里同一状态。</p>')}${card('关于','<p>小飞侠 0.1.0 · 研究快照 2026-10-18。只是交互探索稿，完整导航与任务仍待细化，未通过用户原型确认。</p>')}</div>`;
 $('#main').innerHTML=html;
+wireAgentDraftButton();
 if(current==='病情一图秀')drawChart({animate:true});
 }
 
@@ -646,7 +647,26 @@ if(t.id==='aiState'){const v=t.value;
   else aiState=(hasSession&&!$('#pane').hidden)?'open':(hasSession?'closed':'none');
   paintAI();return}});
 
-function download(){const p=cur();const body=['# 小飞侠 '+VERSION+' · 复诊准备（模拟 · '+p.name+'）','生成：'+new Date().toISOString(),'仅当前探索稿数据；私密记录未包含。','\n## 本人模拟记录',...records().filter(r=>!r.private).map(r=>`- ${r.date} / ${r.kind}：${r.note}\n  来源：${r.source||'未记录'}；非专业结论`),'\n## 指标摘要（抄录位）',...METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1];return `- ${m.name}：${fmt(m,l[1])} ${m.unit}（${l[0]}）· ${m.src}`}),'\n## 基因确诊档案（抄录位）',`- ${p.gene.type} · D4Z4 ${p.gene.repeats} · ${p.gene.haplo} · ${p.gene.method} · ${p.gene.hospital} ${p.gene.date}`,`- 原文：${p.gene.quote}`,'\n## 公共参考线索（不等于个人病历事实）',...[...resources,...trials].filter(i=>saved().has(i.id)).map(i=>`- ${i.name}：${i.limit}\n  ${i.url}\n  核对2026-10-18；${i.source||i.evidence}`),'\n## 下次可问','- 哪些功能变化值得进一步评估？','- 哪些检查适用于我，计划日期和来源是什么？'].join('\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob([body],{type:'text/markdown;charset=utf-8'}));a.href=url;a.download='小飞侠-复诊准备-模拟.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已生成 Markdown 下载（'+p.name+'）；请查看浏览器下载结果')}
+function buildPrepareDraft(){
+  const p=cur();
+  return ['# 小飞侠 '+VERSION+' · 复诊准备（'+p.name+'）','生成：'+new Date().toISOString(),'仅当前探索稿数据；私密记录未包含。','\n## 本人模拟记录',...records().filter(r=>!r.private).map(r=>`- ${r.date} / ${r.kind}：${r.note}\n  来源：${r.source||'未记录'}；非专业结论`),'\n## 指标摘要（抄录位）',...METRICS.filter(m=>seriesOf(p,m.code).length).map(m=>{const a=seriesOf(p,m.code),l=a[a.length-1];return `- ${m.name}：${fmt(m,l[1])} ${m.unit}（${l[0]}）· ${m.src}`}),'\n## 基因确诊档案（抄录位）',`- ${p.gene.type} · D4Z4 ${p.gene.repeats} · ${p.gene.haplo} · ${p.gene.method} · ${p.gene.hospital} ${p.gene.date}`,`- 原文：${p.gene.quote}`,'\n## 公共参考线索（不等于个人病历事实）',...[...resources,...trials].filter(i=>saved().has(i.id)).map(i=>`- ${i.name}：${i.limit}\n  ${i.url}\n  核对2026-10-18；${i.source||i.evidence}`),'\n## 下次可问','- 哪些功能变化值得进一步评估？','- 哪些检查适用于我，计划日期和来源是什么？'].join('\n');
+}
+function download(){const body=buildPrepareDraft();const a=document.createElement('a'),url=URL.createObjectURL(new Blob([body],{type:'text/markdown;charset=utf-8'}));a.href=url;a.download='小飞侠-复诊准备-模拟.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已生成 Markdown 下载（'+cur().name+'）；请查看浏览器下载结果')}
+/* 复诊准备页「带入 AI 对话」：嵌入宿主时 postMessage 到原生会话（一键发送，34 号契约）；独立预览退化为复制草稿 */
+function wireAgentDraftButton(){
+  const exp=document.getElementById('export');
+  if(exp && !exp.parentElement.querySelector('.agent-draft-btn')){
+    const b=document.createElement('button');
+    b.className='btn agent-draft-btn primary';b.textContent='带入 AI 对话';b.style.marginLeft='8px';
+    b.onclick=()=>{
+      const prompt=buildPrepareDraft();
+      if(EMBEDDED){ postToHost({type:MT.draft,prompt,send:true}); toast('已把复诊准备带入右侧 AI 对话（将发送）'); }
+      else if(navigator.clipboard){ navigator.clipboard.writeText(prompt).then(()=>toast('当前为独立预览，没有 AI 面板；草稿已复制到剪贴板')).catch(()=>toast('当前为独立预览，没有 AI 面板；可手动复制')); }
+      else toast('当前为独立预览，没有 AI 面板；可手动复制草稿');
+    };
+    exp.insertAdjacentElement('afterend',b);
+  }
+}
 /* ---------- 文字大小三档：右上角按钮与设置页共用同一状态 ---------- */
 const TZ=[{k:'',label:'标准',note:'正文 15px'},{k:'large',label:'大',note:'正文 17px'},{k:'xlarge',label:'超大',note:'正文 19.5px'}];
 let tzIdx=0;
@@ -662,15 +682,33 @@ $('#font').onclick=()=>setTZ(tzIdx+1,true);
 $('#close').onclick=$('#done').onclick=()=>$('#dialog').close();
 $('#about').onclick=()=>modal('小飞侠 '+VERSION+' · 关于与范围','<p>这是第一批交互探索稿，非完整工作台、非真实患者服务。</p><p>可走查：三组模拟档案切换、确诊档案与误诊时间线、指标卡 3D 翻转看趋势、一图秀多指标（独立归一化 / 时间窗 / 缩放 / 事件泳道 / 重播）、功能/筛查/症状/私密记录、资源与研究收藏（含 Khub 社区与 OpenRare 工具线索）、复诊 Markdown 导出及模拟面板状态稿。</p><p>尚待：报告导入、生产存储、原生 Agent 实机适配、完整子页与异常状态、用户确认。</p>');
 function setWidth(v){width=Math.min(45,Math.max(25,Number(v)));$('#shell').style.setProperty('--pane',width+'%');$('#width').value=width;$('#split').setAttribute('aria-valuenow',width);$('#split').setAttribute('aria-valuetext',width+'%')}
-/* 顶栏 AI 会话五态：none / connecting / open / closed / missing（文案与行为对齐 TOP-BAR §5） */
+/* ---------- 嵌入模式（被 Desktop 工作台以 customFrame 加载）---------- */
+const EMBEDDED = window.parent !== window;
+if (EMBEDDED) {
+  document.body.classList.add('embedded');
+  // 原生会话由宿主挂载在 customFrame 的 aside；iframe 内自带模拟面板必须隐藏（34 号 §2b 面板唯一性）
+  const sim = $('#pane'); if (sim) sim.hidden = true;
+  const sp = $('#split'); if (sp) sp.hidden = true;
+}
+
+/* 顶栏 AI 会话五态：none / connecting / open / closed / missing */
 const AI_LABEL={none:'AI 对话',connecting:'正在连接…',open:'收起 AI 对话',closed:'打开 AI 对话',missing:'AI 对话暂不可用'};
-const AI_HINT={
+// 独立预览用「模拟/示意」措辞；嵌入宿主后用真实措辞（不假装接通）
+const AI_HINT_STANDALONE={
   none:'点右侧「AI 对话」调起原生会话（示意）；资料目录与会话均未连接，工作台可独立使用。',
   connecting:'正在建立会话…此时不会发送任何内容，也不会改动已存的记录。',
   open:'右侧是 DSH 原生会话（示意）：可拖中间分隔边调整宽度 25%–45%，收起不会结束会话。',
   closed:'会话保留在后台；点「打开 AI 对话」回到同一会话，输入框草稿不会丢。',
   missing:'会话服务暂不可用（模拟）；工作台记录、导出与私密设置不受影响。',
   draft:'右侧是 DSH 原生会话（示意）；已有草稿会保留，覆盖与发送均被阻止。'};
+const AI_HINT_EMBEDDED={
+  none:'点右侧「AI 对话」调起原生会话；资料目录与会话均未连接，工作台可独立使用。',
+  connecting:'正在建立会话…此时不会发送任何内容，也不会改动已存的记录。',
+  open:'右侧是 DSH 原生会话：可拖中间分隔边调整宽度 25%–45%，收起不会结束会话。',
+  closed:'会话保留在后台；点「打开 AI 对话」回到同一会话，输入框草稿不会丢。',
+  missing:'当前 Desktop 版本不支持从面板调起会话；工作台记录、导出与私密设置不受影响。',
+  draft:'右侧是 DSH 原生会话；已有草稿会保留，覆盖与发送均被阻止。'};
+const AI_HINT = EMBEDDED ? AI_HINT_EMBEDDED : AI_HINT_STANDALONE;
 let aiState='none', hasSession=false, aiDraft=false;
 function paintAI(note){
   const btn=$('#ai'),hide=$('#aiHide');
@@ -680,18 +718,37 @@ function paintAI(note){
   btn.setAttribute('aria-label','AI 对话：'+(AI_LABEL[aiState]||''));
   if(hide)hide.hidden=(aiState!=='open');
   $('#hint').textContent=note||((aiState==='open'&&aiDraft)?AI_HINT.draft:(AI_HINT[aiState]||AI_HINT.none));
+  const simNote = EMBEDDED ? '。' : '（模拟）；无真实连接或发送。';
   $('#aiNote').textContent=aiDraft?'已有草稿保留。覆盖与发送均被阻止；可取消并返回工作台。'
-    :aiState==='missing'?'连接失败（模拟）。未发送任何内容，工作台记录保留。'
-    :(hasSession?'会话状态：'+AI_LABEL[aiState]+'（模拟）；无真实连接或发送。':'未连接；无真实连接或发送。');
+    :aiState==='missing'?(EMBEDDED?'当前 Desktop 版本不支持从面板调起会话。':'连接失败（模拟）。未发送任何内容，工作台记录保留。')
+    :(hasSession?'会话状态：'+AI_LABEL[aiState]+simNote:'未连接；无真实连接或发送。');
 }
+
+/* ---------- 与宿主壳层通信（customFrame）---------- */
+const MT={open:'fshd:open-agent',close:'fshd:close-agent',draft:'fshd:agent-draft',state:'fshd:agent-state'};
+function postToHost(msg){ if(!EMBEDDED)return; try{ window.parent.postMessage(msg, window.location.origin); }catch(e){} }
+// 宿主回告真实会话状态 → 同步顶栏按钮五态（嵌入下去掉模拟字样）
+window.addEventListener('message',(e)=>{
+  if(e.origin!==window.location.origin) return;
+  const d=e.data; if(!d||d.type!==MT.state) return;
+  hasSession=Boolean(d.connected); aiDraft=false;
+  aiState = !d.canOpen ? 'missing' : d.connecting ? 'connecting' : !hasSession ? 'none' : d.paneOpen ? 'open' : 'closed';
+  paintAI();
+});
+
 function aiToggle(show,note){
+  if(EMBEDDED){ postToHost({type: show===false?MT.close:MT.open}); return; }
   if(show&&$('#shell').clientWidth<620){aiState='closed';paintAI('工作区较窄，AI 会话面板已收起；扩大工作区后可打开。');toast('工作区较窄，AI 助手面板已收起；扩大工作区后可打开');return}
   $('#pane').hidden=$('#split').hidden=!show;$('#shell').classList.toggle('with-pane',show);
   if(show){hasSession=true;aiState='open'}else if(hasSession){aiState='closed'}else{aiState='none'}
   paintAI(note);if(show)setWidth(width);
 }
-$('#ai').onclick=()=>aiToggle($('#pane').hidden);$('#hideAI').onclick=()=>{aiToggle(false);$('#ai').focus()};$('#aiHide').onclick=()=>{aiToggle(false);$('#ai').focus()};$('#width').oninput=e=>setWidth(e.target.value);$('#split').onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();setWidth(e.key==='Home'?25:e.key==='End'?45:width+(e.key==='ArrowLeft'?1:-1))}};
+$('#ai').onclick=()=>{ if(EMBEDDED){ postToHost({type:MT.open}); return; } aiToggle($('#pane').hidden); };
+$('#hideAI').onclick=()=>{ if(EMBEDDED){ postToHost({type:MT.close}); return; } aiToggle(false); $('#ai').focus(); };
+$('#aiHide').onclick=()=>{ if(EMBEDDED){ postToHost({type:MT.close}); return; } aiToggle(false); $('#ai').focus(); };
+$('#width').oninput=e=>setWidth(e.target.value);
+$('#split').onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();setWidth(e.key==='Home'?25:e.key==='End'?45:width+(e.key==='ArrowLeft'?1:-1))}};
 $('#split').onpointerdown=e=>{e.target.setPointerCapture(e.pointerId);e.target.onpointermove=ev=>{const box=$('#shell').getBoundingClientRect();setWidth((box.right-ev.clientX)/box.width*100)};e.target.onpointerup=()=>e.target.onpointermove=null};
-const paneResize=new ResizeObserver(entries=>{const w=entries[0].contentRect.width;document.querySelector('header').classList.toggle('frame-compact',w<=760);if(w<620){$('#nav').classList.add('nav-compact');if(!$('#pane').hidden)aiToggle(false,'工作区较窄，AI 会话面板已收起；扩大工作区后可打开。')}else $('#nav').classList.remove('nav-compact')});paneResize.observe($('#shell'));
+const paneResize=new ResizeObserver(entries=>{const w=entries[0].contentRect.width;document.querySelector('header').classList.toggle('frame-compact',w<=760);if(w<620){$('#nav').classList.add('nav-compact');if(!EMBEDDED && !$('#pane').hidden)aiToggle(false,'工作区较窄，AI 会话面板已收起；扩大工作区后可打开。')}else $('#nav').classList.remove('nav-compact')});paneResize.observe($('#shell'));
 $('#verChip').textContent='v'+VERSION;const fv=$('#footVer');if(fv)fv.textContent=VERSION;document.title='小飞侠 · FSHD 工作台 '+VERSION;
 setTZ(0,false);applyProfileHeader();paintAI();render();

@@ -8,6 +8,10 @@ export const inject = ['webServer', 'connection']
 export const Config = Schema.object({})
 const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 
+// 业务目录：供 ensureSession({ folder }) 使用（customFrame 硬要求②）。
+// 当前原型为内存模拟，尚未接入本机目录；接入数据层后由该环境变量/配置注入真实路径。
+const DATA_DIR = process.env.FSHD_DATA_DIR || null
+
 const UI_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'ui')
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -64,7 +68,7 @@ export function apply(ctx) {
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return send(rejection, { error: 'Authentication required' })
       if (req.method !== 'GET') return send(405, { error: 'Method not allowed' })
-      send(200, { ok: true, version: manifest.version, apiVersion: 'v1', capabilities: ['health', 'ui'] })
+      send(200, { ok: true, version: manifest.version, apiVersion: 'v1', capabilities: ['health', 'ui'], dir: DATA_DIR })
     },
   }), 'fshd health')
 
