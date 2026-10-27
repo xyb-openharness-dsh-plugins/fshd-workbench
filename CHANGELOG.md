@@ -12,7 +12,7 @@
 - **链接验活**：10 条链接引用（5 个唯一 URL：AAN 官方页、卫健委通知页、3 个 ClinicalTrials.gov 登记页）逐条用 `verify-links.mjs` 实测 OK；5 处 GeneReviews `nolink`（均有 note）。此前写入的 Neurology 原文页（403）与 NCBI Bookshelf（CHALLENGE）不计可达，已替换 / 降级。
 - **检查器**：新增 `scripts/check-primer-links.mjs`（L1–L6，15 项断言全过），并入 `npm run check`。
 - **版本号**：`VERSION` / `package.json` / `prototypes/v0.1/manifest.json` / 原型 `app.js` / `index.html` 同步至 0.1.2；manifest 快照哈希按当前 `index.html` / `style.css` / `app.js` 重算。
-- **状态卡（§2.6）**：本仓看板为任务入口卡，无 D+N 治疗锚点模型（FSHD 无移植 / 诱导类 Day 0），本版未新增状态卡；顶栏「?」入口已具备。
+- **看板状态卡（§2.6 四件）**：本仓无 D+N 治疗锚点（FSHD 无移植 / 诱导类 Day 0），按规范做「待初始化」兜底，不造临床锚点、不改数据模型：看板首卡卡头 eyebrow「状态卡 · 待初始化」／大字「待初始化」（28px，天数不手填）／现状行「尚无锚点日；完成三步初始化后自动派生」+ 三步说明／出口按钮排（主「开始三步初始化 →」进设置页，副「疾病概要：FSHD 是什么？」打开现有浮窗）。
 
 ## 0.1.1 (2026-10-21)
 

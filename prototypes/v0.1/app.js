@@ -156,6 +156,14 @@ const trials=[
 
 const card=(title,body,cls='')=>`<section class="card ${cls}"><h2>${title}</h2>${body}</section>`;
 const jump=(name,text)=>`<button class="task-link" data-page="${name}">${text||name} →</button>`;
+/* 36 号 §2.6 看板状态卡：无锚点数据时整卡「待初始化」，天数不手填、不造临床锚点。 */
+const statusCard=()=>`<section class="card status-card" aria-labelledby="statusCardTitle">
+  <span class="status-eyebrow">状态卡 · 待初始化</span>
+  <h2 class="status-big" id="statusCardTitle">待初始化</h2>
+  <p class="status-line">尚无锚点日；完成三步初始化后自动派生。</p>
+  <p class="status-steps">三步：① 选择本机资料目录 ② 确认患者档案 ③ 设置锚点日。本原型未接通，不预填任何日期。</p>
+  <div class="status-actions"><button class="primary" data-page="设置">开始三步初始化 →</button><button class="ghost" type="button" data-primer-open aria-label="疾病概要：定义、医学资料与指南情况、治疗全景、发展趋势">疾病概要：FSHD 是什么？</button></div>
+</section>`;
 function toast(text){const t=$('#toast');t.textContent=text;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),3800)}
 function modal(title,body){$('#dialogTitle').textContent=title;$('#dialogBody').innerHTML=body;$('#dialog').showModal()}
 
@@ -528,7 +536,7 @@ function render(){
 $('#nav').innerHTML=NAV_GROUPS.map(([g,ps])=>`<div class="nav-group">${g?`<span class="nav-group-label">${g}</span>`:''}${ps.map(p=>`<button data-page="${p}" aria-label="${p}" title="${p}" ${p===current?'aria-current="page"':''}><span class="nav-icon" aria-hidden="true">${navIcons[p]}</span><span class="nav-label">${p}</span></button>`).join('')}</div>`).join('')+`<span class="nav-foot">画像稿 · 未签认</span>`;
 const p=cur();
 let html=current==='看板'?'':'<div class="page-head"><h1>'+esc(current)+'</h1></div>';
-if(current==='看板')html+=`<section class="hero"><h1>记录变化，准备下一次复诊。</h1><p>从今天最想完成的一件事开始。生活任务、功能变化和想问的问题，可以一起带到诊室。</p></section><div class="grid">${card('今天想先做什么？',jump('功能与康复','记录一项生活任务的变化')+jump('并发症筛查','整理医生建议的检查计划')+jump('复诊准备','准备复诊问题与材料'),'feature')}${card('把支持带进日常',jump('医保与资源','找患者组织与诊疗线索')+jump('临床研究','核对听说的新药进展')+jump('心理与生活','整理私密困扰与支持需要'))}</div><div class="grid section">${card('筛查计划',records().filter(r=>r.kind==='并发症筛查').length?'<p>已记录 '+records().filter(r=>r.kind==='并发症筛查').length+' 条模拟计划。无建议日期的项目保持待确认。</p>'+jump('并发症筛查','查看计划'):'<div class="empty">还没有专业建议日期。与医生确认后再记录，不自动推算逾期。</div>')}${card('本次记录',`<p>${records().filter(r=>!r.private).length} 条公开模拟记录 · ${saved().size} 条已收藏线索</p><small>私密心理记录不出现在看板摘要中。切右上角档案可看 ${PROFILES.map(x=>x.name).join(' / ')} 三组画像。</small>` )}</div><details class="section"><summary>💡 为什么有这些入口？</summary><p>中国患者研究归纳了五类诉求：靶向药、辅助器具、心理支持、就业机会和更包容的社会环境。五项没有全国统一量化名次。</p><a href="https://doi.org/10.1186/s41687-026-01026-z" target="_blank" rel="noopener noreferrer">查看2026患者研究</a></details>`;
+if(current==='看板')html+=`<section class="hero"><h1>记录变化，准备下一次复诊。</h1><p>从今天最想完成的一件事开始。生活任务、功能变化和想问的问题，可以一起带到诊室。</p></section>${statusCard()}<div class="grid">${card('今天想先做什么？',jump('功能与康复','记录一项生活任务的变化')+jump('并发症筛查','整理医生建议的检查计划')+jump('复诊准备','准备复诊问题与材料'),'feature')}${card('把支持带进日常',jump('医保与资源','找患者组织与诊疗线索')+jump('临床研究','核对听说的新药进展')+jump('心理与生活','整理私密困扰与支持需要'))}</div><div class="grid section">${card('筛查计划',records().filter(r=>r.kind==='并发症筛查').length?'<p>已记录 '+records().filter(r=>r.kind==='并发症筛查').length+' 条模拟计划。无建议日期的项目保持待确认。</p>'+jump('并发症筛查','查看计划'):'<div class="empty">还没有专业建议日期。与医生确认后再记录，不自动推算逾期。</div>')}${card('本次记录',`<p>${records().filter(r=>!r.private).length} 条公开模拟记录 · ${saved().size} 条已收藏线索</p><small>私密心理记录不出现在看板摘要中。切右上角档案可看 ${PROFILES.map(x=>x.name).join(' / ')} 三组画像。</small>` )}</div><details class="section"><summary>💡 为什么有这些入口？</summary><p>中国患者研究归纳了五类诉求：靶向药、辅助器具、心理支持、就业机会和更包容的社会环境。五项没有全国统一量化名次。</p><a href="https://doi.org/10.1186/s41687-026-01026-z" target="_blank" rel="noopener noreferrer">查看2026患者研究</a></details>`;
 else if(current==='我的确诊')html+=renderDiagnosis(p);
 else if(current==='检查与指标')html+=renderLabs(p);
 else if(current==='病情一图秀')html+=renderOneChart(p);

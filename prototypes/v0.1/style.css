@@ -88,6 +88,13 @@ nav small{display:block;padding:8px 10px;line-height:1.5}
 .card p{font-size:calc(13px * var(--tz));color:var(--text)}
 .card li{font-size:calc(13px * var(--tz));color:var(--text)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:11px}
+/* 36 号 §2.6 看板首卡·状态卡：无锚点日的「待初始化」兜底（天数由锚点派生，不手填） */
+.status-card{background:linear-gradient(135deg,var(--soft),#fff 72%);border-color:#c2d9c9;margin-bottom:11px}
+.status-eyebrow{display:inline-block;font-size:calc(11.5px * var(--tz));letter-spacing:.06em;color:var(--muted)}
+.status-card h2.status-big{font-size:calc(28px * var(--tz));line-height:1.15;color:var(--green);margin:4px 0 2px;letter-spacing:-.01em}
+.status-card .status-line{font-size:calc(13px * var(--tz));color:var(--ink);margin-top:2px}
+.status-card .status-steps{font-size:calc(12px * var(--tz));color:var(--muted);margin-top:4px}
+.status-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .grid-card{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:11px}
 .section{margin-top:11px}
 .stack{display:grid;gap:11px}
