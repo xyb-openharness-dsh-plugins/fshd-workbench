@@ -146,6 +146,18 @@ td.num{text-align:right}
 .metric-group-head h3{font-size:calc(14px * var(--tz));margin:0}
 .metric-group-head span{font-size:calc(12px * var(--tz));color:var(--muted)}
 .metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,1fr));gap:11px}
+.metric-cats{display:flex;flex-direction:column;gap:18px}
+.metric-cat .cat-head{display:flex;align-items:baseline;gap:8px;margin:0 0 8px}
+.metric-cat .cat-name{font-size:calc(13px * var(--tz));font-weight:650;color:var(--ink)}
+.metric-cat .cat-meta{font-size:calc(11px * var(--tz));color:var(--muted)}
+.mcard.empty{cursor:default}
+.mcard.empty .mface.front{border-style:dashed;border-color:var(--line);background:#fbfdfb}
+.mcard.empty .val.empty{font-size:calc(14px * var(--tz));color:var(--muted);font-weight:500;letter-spacing:0}
+.mcard .src-detail{margin-top:6px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:calc(11.5px * var(--tz));color:var(--text);line-height:1.55}
+.mcard .src-detail[hidden]{display:none}
+.sp-dot{cursor:pointer}
+.rail .metric-pick.disabled{opacity:.5}
+.rail .metric-pick.disabled input{cursor:not-allowed}
 .mcard{perspective:1200px;-webkit-perspective:1200px;display:block;width:100%;height:calc(186px * var(--tz));padding:0;border:0;background:none;text-align:left;border-radius:14px;min-height:0}
 .mcard:hover{background:none}
 .mcard-inner{position:relative;display:block;height:100%;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .62s cubic-bezier(.2,.72,.2,1);will-change:transform}

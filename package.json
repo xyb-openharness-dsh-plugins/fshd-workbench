@@ -20,8 +20,9 @@
     "NOTICE.md"
   ],
   "scripts": {
-    "check": "node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-primer-links.mjs",
-    "pack:check": "npm pack --dry-run"
+ "check": "node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-primer-links.mjs && node scripts/check-version.mjs && node scripts/check-wording.mjs",
+ "test": "node scripts/probe-disease-primer.mjs",
+ "pack:check": "npm pack --dry-run"
   },
   "dsh": {
     "bundle": {

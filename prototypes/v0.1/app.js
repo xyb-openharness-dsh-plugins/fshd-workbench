@@ -230,15 +230,15 @@ function deltaText(m,prevVal,lastVal){
   if(m.delta==='pct')return (d>0?'+':'')+(d/Math.abs(prevVal)*100).toFixed(1)+'%';
   return (d>0?'+':'')+fmt(m,d)+' '+m.unit.replace(/\s*\/.*/,'');
 }
-/* 指标卡背面迷你折线（与小畅宝 v0.2 同源：基线 + 折线 + 点） */
-function sparkline(pts,color,w=200,h=44){
+/* 指标卡背面迷你折线（与小畅宝 v0.2 同源：基线 + 折线 + 点）；点可点开来源（MT09） */
+function sparkline(pts,color,code,w=200,h=44){
   if(!pts||pts.length<2)return '';
   const vs=pts.map(x=>x[1]);let lo=Math.min(...vs),hi=Math.max(...vs);
   if(hi===lo){hi+=1;lo-=1}
   const X=i=>4+(w-8)*i/(pts.length-1);
   const Y=v=>h-5-(h-10)*(v-lo)/(hi-lo);
   const d=pts.map((x,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(x[1]).toFixed(1)}`).join('');
-  const dots=pts.map((x,i)=>`<circle class="sp-dot" cx="${X(i).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="2.6" fill="${color}"><title>${esc(x[0])} · ${fmt({dec:1},x[1])}</title></circle>`).join('');
+  const dots=pts.map((x,i)=>`<circle class="sp-dot" cx="${X(i).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="3.2" fill="${color}" data-action="msrc" data-code="${code}" data-i="${i}" role="button" tabindex="0" aria-label="查看 ${esc(x[0])} 的来源"><title>${esc(x[0])} · ${fmt({dec:1},x[1])}</title></circle>`).join('');
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path class="base" d="M4 ${h-5}H${w-4}"/><path class="sp-line" d="${d}" stroke="${color}"/>${dots}</svg>`;
 }
 const METRIC_CATS=['检验','呼吸','功能','量表'];
@@ -253,18 +253,35 @@ function metricCard(p,m){
       <span class="mface front">${cat}<span class="name">${esc(m.name)}</span>
         <span class="val"><span>${fmt(m,last[1])}</span><small>${esc(m.unit)}</small></span>
         ${prev?`<span class="delta">较上次 <em>${esc(deltaText(m,prev[1],last[1]))}</em>（${esc(last[0])}）</span>`:`<span class="delta">首次记录（${esc(last[0])}）</span>`}
-        <span class="rec">${esc(last[0])} · ${esc(m.src)}</span></span>
+        <span class="rec">${pts.length} 次已核对 · ${esc(last[0])} · ${esc(m.src)}</span></span>
       <span class="mface back">${cat}<span class="name">${esc(m.name)}</span><span class="count">最近 ${pts.length} 次 · ${esc(m.unit)}</span>
-        ${sparkline(pts,m.color)}
+        ${sparkline(pts,m.color,m.code)}
         ${pts.length>1
           ?`<span class="spark-labels"><span>${esc(pts[0][0])}</span><span>${esc(last[0])}</span></span>`
           :`<span class="spark-labels"><span>只有 1 次记录，暂不连线</span><span>${esc(last[0])}</span></span>`}
+        <span class="src-detail" data-src-for="${m.code}" hidden></span>
         <span class="foot">末值 ${fmt(m,last[1])} ${esc(m.unit)} · 全期 ${fmt(m,Math.min(...vals))}–${fmt(m,Math.max(...vals))}</span></span>
     </span></button>`;
 }
+/* 无记录的指标：仍出现在目录里、可找到，但不显示 0、不画假曲线（24 §2/§7） */
+function emptyMetricCard(m){
+  const cat=`<span class="cat"><i style="background:${m.color}"></i>${esc(m.cat)}</span>`;
+  return `<span class="mcard empty" aria-label="${esc(m.name)} 还没有记录，可在「检查与指标」补录">
+    <span class="mcard-inner"><span class="mface front">${cat}<span class="name">${esc(m.name)}</span>
+      <span class="val empty">还没有记录</span>
+      <span class="rec">${esc(m.src)}</span></span></span></span>`;
+}
+/* 按 METRIC_CATS 分组渲染；类别眉题含「共 X 项 · 有记录 Y 项」，入口始终可找（MT03） */
 function metricCardGrid(p){
-  const ms=METRICS.filter(m=>seriesOf(p,m.code).length);
-  return `<div class="metric-grid">${ms.map(m=>metricCard(p,m)).join('')}</div>`;
+  const blocks=METRIC_CATS.map(cat=>{
+    const codes=METRICS.filter(m=>m.cat===cat);
+    if(!codes.length)return '';
+    const rec=codes.filter(m=>seriesOf(p,m.code).length);
+    const head=`<div class="cat-head"><span class="cat-name">${esc(cat)}</span><span class="cat-meta">共 ${codes.length} 项 · 有记录 ${rec.length} 项</span></div>`;
+    const cards=codes.map(m=>seriesOf(p,m.code).length?metricCard(p,m):emptyMetricCard(m)).join('');
+    return `<section class="metric-cat">${head}<div class="metric-grid">${cards}</div></section>`;
+  }).filter(Boolean).join('');
+  return `<div class="metric-cats">${blocks}</div>`;
 }
 
 /* ---------- 检查与指标 ---------- */
@@ -336,7 +353,7 @@ return `<div class="chips" aria-label="时间范围">${RANGES.map(([k,l])=>`<but
   <aside class="rail" aria-label="筛选与指标选择">
     <details class="pick" ${window.innerWidth>900?'open':''}>
       <summary>选择指标 <small>最多 4 个 · 已选 ${st.sel.length}</small></summary>
-      <div class="metric-list">${groups.map(g=>`<div class="cat-label">${esc(g.cat)}</div>${g.codes.filter(c=>seriesOf(p,c.code).length).map(c=>`<label class="metric-pick"><input type="checkbox" ${st.sel.includes(c.code)?'checked':''} data-pick="${c.code}"><i style="background:${c.color}"></i><span>${esc(c.name)}</span><small>${seriesOf(p,c.code).length} 次</small></label>`).join('')}`).join('')}</div>
+      <div class="metric-list">${groups.map(g=>`<div class="cat-label">${esc(g.cat)}</div>${g.codes.map(c=>{const n=seriesOf(p,c.code).length;return `<label class="metric-pick${n?'':' disabled'}"><input type="checkbox" ${st.sel.includes(c.code)?'checked':''} data-pick="${c.code}" ${n?'':'disabled'}><i style="background:${c.color}"></i><span>${esc(c.name)}</span><small>${n?n+' 次':'未记录'}</small></label>`}).join('')}`).join('')}</div>
       </details>
     <section><h3>显示</h3>
       <div class="chips">
@@ -579,6 +596,11 @@ const el=e.target.closest('[data-action]');if(el){
   if(a==='ev-close'){chart().ev=null;drawChart();return}
   if(a==='ev'){const st=chart(),i=Number(el.dataset.i),key=el.dataset.eventKey||eventKey(cur().events[i]);st.ev=st.ev===key||st.ev===i?null:key;st.pin=null;drawChart();return}
 }
+const dot=e.target.closest('[data-action="msrc"]');
+if(dot){e.stopPropagation();const code=dot.dataset.code,i=Number(dot.dataset.i),m=metricBy(code),p=cur(),pts=seriesOf(p,code),pt=pts[i];
+  if(pt){const box=document.querySelector(`.mface.back .src-detail[data-src-for="${code}"]`);
+    if(box){box.hidden=false;box.innerHTML=`<b>${esc(pt[0])}</b> · ${fmt(m,pt[1])} ${esc(m.unit)}<br>来源：${esc(m.src)}（模拟记录；原件待核）`}}
+  return;}
 const b=e.target.closest('button');
 if(b&&b.dataset.action==='choose-profile'){chooseProfile(b.dataset.profile);$('#dialog').close();return}
 if(b&&b.dataset.action==='mflip'){const code=b.dataset.code,on=b.getAttribute('aria-pressed')==='true';
@@ -600,6 +622,10 @@ if(b&&b.dataset.filter){tab=b.dataset.filter;render();return}
 if(b&&b.dataset.save){const id=b.dataset.save;saved().has(id)?saved().delete(id):saved().add(id);render();toast('收藏已更新（归属档案 '+cur().name+'，仅当前页面暂存）');return}
 if(b&&b.dataset.detail){const i=[...resources,...trials].find(i=>i.id===b.dataset.detail);modal(i.name,`<p>${esc(i.service||i.mechanism)}</p><p>${esc(i.result||'')}</p><p><strong>待核实：</strong>${esc(i.limit)}</p><h3>咨询时可以问</h3><ul><li>目前是否提供与我需求相关的服务或研究？</li><li>需要哪些已有报告、转诊材料和往返安排？</li><li>费用、补偿、资格与实际名额如何确认？</li></ul><p>来源性质：${esc(i.source||i.evidence)}；本轮核对 2026-10-18。没有电话核验或预约。</p><a target="_blank" rel="noopener noreferrer" href="${i.url}">打开原始来源 ↗</a>`);return}
 if(b&&b.id==='export')download();});
+document.addEventListener('keydown',e=>{
+  const dot=e.target.closest&&e.target.closest('[data-action="msrc"]');
+  if(dot&&(e.key==='Enter'||e.key===' ')){e.preventDefault();dot.click();}
+});
 document.addEventListener('change',e=>{
 const t=e.target;
 if(t.dataset&&t.dataset.tz!==undefined){setTZ(Number(t.dataset.tz),true);return}

@@ -60,9 +60,11 @@ FSHD 没有肿瘤那样的病期与线序，下面按照护类别分组。只列
 
 ## 当前能力
 
-- 一个 DSH 工作台注册、认证的健康接口、版本展示与标准/大字切换。
-- 已明确选择布局：business-first。business-first 使用 customFrame；模板不创建会话或复制聊天。需要 AI 协助时按官方合同接入原生 conversation 和会话管理。
-- 无业务数据库、无演示患者、无真实密钥；所有业务页按确认 spec 逐项实现。
+- 富原型 `prototypes/v0.1/` 已完成：12 个业务页 + 病情一图秀（对齐 16-ONE-CHART-SPEC）+ 指标卡（对齐 24-METRIC-TREND-TAB-DESIGN）+ 疾病概要 36 号 v2（顶栏「?」整页浮窗、指南链接真实可点、看板状态卡）。
+- 原型数据为本机内存模拟（113 点 / 3 档案），刷新重置，**请勿填写真实病历**。
+- 已明确布局：customFrame（业务优先，原生 AI 会话由宿主托管）；顶栏三段式 + AI 五态。
+- **装机呈现**：`lib/client.js` 正在接入，使装机的「小飞侠 FSHD 工作台」直接呈现上述富原型（见 [docs/G2-SIGNOFF.md](docs/G2-SIGNOFF.md) 与下方 2026-10-27 记录）。当前已发布的骨架包内 `lib/client.js` 仍是占位面板；G2 逐页签认完成后进入 G3 数据模型冻结。
+- 无业务数据库、无真实密钥；所有业务页按确认 spec 逐项实现。
 
 ## 开发与本地验收
 
@@ -70,7 +72,8 @@ FSHD 没有肿瘤那样的病期与线序，下面按照护类别分组。只列
 
 ```bash
 npm install
-npm run check
+npm run check      # 含版本同步 + 文案红线 + 包结构校验
+npm test           # 跑疾病概要探针 P1–P9（自带本地服务）
 npm run pack:check
 npm pack
 ```
@@ -92,3 +95,11 @@ Logo 来源与使用限制见 assets/README.md。许可证采用 MIT（见 `LICE
 ## 2026-10-18 需求调研与原型探索
 
 已完成[调研总览](docs/RESEARCH-2026-10-18.md)，补充SPEC v0.2。第一批[HTML交互探索稿](prototypes/v0.1/index.html)可本机打开；记录为内存模拟，刷新重置，请勿填写真实病历。完整原型、用户确认、生产业务与Desktop接入均待完成。
+
+## 2026-10-27 原型对齐与发布
+
+- **P1 回灌**：补入脚手架适用规范 [21 研究手册](docs/21-RESEARCH-PLAYBOOK.md)、[22 阶段闸口](docs/22-PHASES-AND-GATES.md)、[23 指标分级告警](docs/23-METRIC-GRADING-AND-ALERTS.md)、[24 指标趋势 Tab](docs/24-METRIC-TREND-TAB-DESIGN.md)、[25 指南桥接](docs/25-GUIDELINE-BRIDGE.md)、[32 整页视图](docs/32-FULL-PAGE-VIEW.md)，及缺失 prompts（顶栏、动效、36 回补、指标趋势、ZERO-TO-DEV）；模板与 page-view 参考件一并补齐。不覆盖 FSHD 已定制的 docs。
+- **P2 指标卡**：按 24 号修 6 处差距——①指标卡与一图秀共用 `METRIC_CATS` 分组目录（MT03）；②无记录指标保留「还没有记录」占位卡、入口可找；③正面加「N 次已核对」；④背面数据点可点开来源详情且不翻回（MT09）；⑤可比组合同写入 [METRIC-TREND-SPEC.md](docs/METRIC-TREND-SPEC.md)；⑥尺寸偏离（186/1200/620）登记进 [DEVIATIONS.md](docs/DEVIATIONS.md)。
+- **P3 留痕**：[TASKS.md](docs/TASKS.md) 修正 Git 状态；新增 [G2-SIGNOFF.md](docs/G2-SIGNOFF.md) 逐页签认追踪（保持「未签认」）；`npm run check` 增版本同步与文案红线，`npm test` 接探针；本文件更新真实状态；重复文档（ONE-CHART-SPEC / ONE-CHART-CONTRACT）定权威。
+- **lib/client.js 接入**：进行中，目标是让装机工作台直接呈现富原型（见 [docs/G2-SIGNOFF.md](docs/G2-SIGNOFF.md)）。
+- 版本 `0.1.2`，Git 已推 `origin/main`；`npm run check` 全绿。
