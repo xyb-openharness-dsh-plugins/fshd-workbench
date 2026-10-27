@@ -67,3 +67,31 @@
 2. **HTML 状态稿目录**：已冻结签认的原型目录不放新文件；用新目录（如 `prototypes/v0.x-agent-pane/`）。
 3. **入口默认态**：若宿主会话节点本来就显示，入口按钮是否仅作状态指示？V2 装机实机确认。
 4. **偏离写入 SPEC**：第 2 节表格的偏离要不要照抄进项目 SPEC（给出编号起点）？
+
+## 7. 本项目落地记录（v0.1.4，2026-10-27）
+
+用户看到原型 iframe 里那块「宿主模拟 / 非真实 DSH 会话」的占位面板后，要求「直接就集成原生对话」，于是把形态从 split 改为 CustomFrame，真实接入宿主会话。
+
+**形态偏离（对照第 2 节表格）**
+
+| 项 | 原判定 | 现落地 | 理由 |
+| --- | --- | --- | --- |
+| 分栏合同 | split（`businessWidth` 0.65、`customFrame` false） | **customFrame: true**，`layout.businessWidth` 0.65 保留作初值 | 需要自管「可收起 + 可拖宽」的会话栏；split 形态下工作台代码里拿不到会话节点，无法替换业务区自带的模拟面板 |
+| 面板宽度 | 不适用（随宿主） | 35% 默认，可拖 25%–45%，步进 2%，localStorage 持久化 | 按提示词基线；宽度常量只有 `lib/client.js` 一份 |
+| 带入对话 | 合同缺方法名时只做剪贴板回退 | 走 `sessions.scope(id).get('conversation').input.for(actx)` 的 `setDraft` / `submit` | 宿主 API 实测可用；仍保留「拿不到就回退复制」的分支 |
+
+**四条实现要点（后续工作台照抄这三条判据）**
+
+1. **会话归属**：只问 `currentSession()` + `ownsSession(id)`。**`conversation` prop 恒非空**——本工作台 active 时宿主会传一个 `display:none` 的容器，拿它判断「已有会话」会导致按钮永远只是切显隐、`ensureSession` 永不触发。
+2. **面板唯一性**（34 号 §2b）：原型 `EMBEDDED = window.parent !== window` 时隐藏自带 `#pane`/`#split`/`#ai`/`#aiHide` 与品牌块，顶栏 AI 入口改走 `postMessage`，状态监听 `fshd:agent-state` 回显宿主五态。**不允许「演示面板 + 原生会话」并存**。
+3. **节点始终挂载**：原生会话节点只切 `display`，卸载会丢输入框与草稿。
+4. **一键发送双守卫**：填入草稿后，仅当消息 `send === true`、会话相位为 `plain`、且草稿非空才 `input.submit()`；草稿冲突时抛错交上层提示，不覆盖用户已有输入。
+
+**第 6 节四问的现状**
+
+1. 带入 API —— 已落地（见上表），宿主侧双校验 `event.source === iframe.contentWindow` 且 `event.origin === location.origin`。
+2. 状态稿目录 —— 未新开目录，改在 `prototypes/v0.1` 内加 `embedded` 分支：**不新增冻结稿**，嵌入/独立两态共用一份代码。
+3. 入口默认态 —— **默认展开**（`paneOpen = true`），按钮为「收起/展开」而非状态指示。
+4. 偏离入 SPEC —— 暂不写入，等 V2 真机确认后连编号一起补。
+
+**验收状态**：包级检查链全绿（`npm run check` 15/15 链接断言、版本同步、文案红线；`npm test` 10/10），装机 0.1.4 已在 `desktop-storage.json` 登记。**V2 实机仍未验证**——目标 Desktop RC 里拖宽、收起、草稿带入一键发送这三件事必须在真机点一遍，静态 DOM 与脚本自测不替代验收。
