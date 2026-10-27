@@ -141,9 +141,15 @@ html.dp-lock, html.dp-lock body{ overflow: hidden; }
   font-size: calc(12.5px * var(--dp-tz)); font-weight: 700; color: var(--dp-accent-deep);
 }
 /* 36 号 §4.3：分组内列表缩进只作用在项目符号层，与 lead 同左基线 */
-.dp-group .dp-points{ padding-left: 20px; margin-bottom: 6px; }
+.dp-group .dp-points{ margin-bottom: 6px; }
 
-.dp-points{ margin: 0 0 10px; padding-left: 18px; }
+/* 36 号 §4.3：列表块左内边距归零，符号缩进放 li——ul 盒右边界与正文/表格一致 */
+.dp-points{ margin: 0 0 10px; padding-left: 0; list-style: none; }
+.dp-points li{ position: relative; padding-left: 18px; }
+.dp-points li::before{
+  content: ""; position: absolute; left: 6px; top: .72em;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--dp-muted, #7A7186);
+}
 .dp-points li{
   font-size: calc(12.8px * var(--dp-tz)); line-height: 1.75; color: var(--dp-ink2);
   margin-bottom: 5px;
